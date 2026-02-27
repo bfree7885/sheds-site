@@ -33,7 +33,28 @@
       font-size: 1.5rem;
       color: #f4f4f4;
     }
+.preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
 
+.preview img {
+  width: 100%;
+  border-radius: 6px;
+  opacity: 0.9;
+}
+
+figure {
+  margin: 0;
+}
+
+figcaption {
+  font-size: 0.8rem;
+  color: #9aa0b5;
+  margin-top: 0.4rem;
+}
  ul {
   margin-top: 1rem;
   padding-left: 1.2rem;
@@ -57,14 +78,14 @@ li {
 <body>
   <div class="container">
     <h1>Sheds</h1>
+<p><strong>GIS-based shed hunting decision support.</strong></p>
 
-    <p><strong>Ethical, GIS-based shed hunting decision support.</strong></p>
-
-    <p>
-      Sheds is designed to support responsible shed hunting through geospatial
-      analysis and seasonal awareness. It prioritizes wildlife welfare, land
-      stewardship, and ethical field behavior over shortcuts or guarantees.
-    </p>
+<p>
+  Sheds helps people make informed, responsible decisions about where and when
+  to explore. It emphasizes seasonal awareness, land context, and wildlife
+  sensitivity—prioritizing restraint and understanding over shortcuts or
+  guarantees.
+</p>
     <h2>How Sheds Is Different</h2>
 
     <ul>
@@ -75,7 +96,29 @@ li {
     <div class="status">
       Private development. Subscriber release planned.
     </div>
+<h2>Early Preview</h2>
 
+<p>
+  These examples illustrate the types of spatial context Sheds will use to
+  support responsible, seasonally appropriate decision-making.
+</p>
+
+<div class="preview">
+  <figure>
+    <img src="preview_terrain.jpg" alt="Terrain context map" />
+    <figcaption>Terrain context</figcaption>
+  </figure>
+
+  <figure>
+    <img src="preview_landstatus.jpg" alt="Land status boundaries map" />
+    <figcaption>Land status boundaries</figcaption>
+  </figure>
+
+  <figure>
+    <img src="preview_seasonal.jpg" alt="Seasonal constraint zones map" />
+    <figcaption>Seasonal constraint zones</figcaption>
+  </figure>
+</div>
     <footer>
       Seasonal restrictions and ethical constraints are enforced by design.
     </footer>

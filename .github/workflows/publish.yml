@@ -17,48 +17,38 @@ jobs:
         with:
           token: ${{ secrets.SHEDS_TOKEN }}
 
-      - name: Ensure publish file exists
+      - name: Publish if file exists
         run: |
           if [ ! -f publish.json ]; then
             echo "No publish.json found. Skipping."
             exit 0
           fi
 
-      - name: Read publish file
-        run: |
           SLUG=$(jq -r '.slug' publish.json)
           TITLE=$(jq -r '.title' publish.json)
-          DATE=$(jq -r '.date' publish.json)
           CONTENT=$(jq -r '.content' publish.json)
-
-          FILENAME="$SLUG.html"
 
           mkdir -p briefs
 
-          cat <<EOF > briefs/$FILENAME
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>$TITLE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <div class="container">
-    $CONTENT
-  </div>
-</body>
-</html>
-EOF
+          echo "<!DOCTYPE html>" > briefs/$SLUG.html
+          echo "<html lang=\"en\">" >> briefs/$SLUG.html
+          echo "<head>" >> briefs/$SLUG.html
+          echo "  <meta charset=\"UTF-8\" />" >> briefs/$SLUG.html
+          echo "  <title>$TITLE</title>" >> briefs/$SLUG.html
+          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />" >> briefs/$SLUG.html
+          echo "  <link rel=\"stylesheet\" href=\"/styles.css\">" >> briefs/$SLUG.html
+          echo "</head>" >> briefs/$SLUG.html
+          echo "<body>" >> briefs/$SLUG.html
+          echo "  <div class=\"container\">" >> briefs/$SLUG.html
+          echo "$CONTENT" >> briefs/$SLUG.html
+          echo "  </div>" >> briefs/$SLUG.html
+          echo "</body>" >> briefs/$SLUG.html
+          echo "</html>" >> briefs/$SLUG.html
 
-          echo "<li><a href=\"$FILENAME\">$TITLE</a></li>" >> briefs/index.html
+          echo "<li><a href=\"$SLUG.html\">$TITLE</a></li>" >> briefs/index.html
 
-      - name: Remove publish file
-        run: rm publish.json
+          rm publish.json
 
-      - name: Commit changes
-        run: |
           git config --global user.name "Sheds Automation"
           git config --global user.email "actions@github.com"
           git add .

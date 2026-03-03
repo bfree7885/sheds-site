@@ -15,26 +15,23 @@ jobs:
         with:
           token: ${{ secrets.SHEDS_TOKEN }}
 
-      - name: Read publish file
-        id: publishdata
+      - name: Ensure publish file exists
         run: |
-          CONTENT=$(cat publish.json)
-          echo "content<<EOF" >> $GITHUB_OUTPUT
-          echo "$CONTENT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          if [ ! -f publish.json ]; then
+            echo "No publish.json found. Exiting cleanly."
+            exit 0
+          fi
 
       - name: Create HTML file
         run: |
           FILENAME=$(jq -r '.filename' publish.json)
           HTML=$(jq -r '.html' publish.json)
-
           echo "$HTML" > briefs/$FILENAME
 
       - name: Update index
         run: |
           FILENAME=$(jq -r '.filename' publish.json)
           TITLE=$(jq -r '.title' publish.json)
-
           echo "<li><a href=\"$FILENAME\">$TITLE</a></li>" >> briefs/index.html
 
       - name: Remove publish file
@@ -45,5 +42,5 @@ jobs:
           git config user.name "sheds-bot"
           git config user.email "bot@sheds.local"
           git add .
-          git commit -m "Auto publish field note"
+          git commit -m "Auto publish field note" || echo "Nothing to commit"
           git push

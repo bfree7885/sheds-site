@@ -12,16 +12,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Exit if no publish file
+      - name: Exit if publish.json missing
         run: |
           if [ ! -f publish.json ]; then
+            echo "No publish.json found. Exiting."
             exit 0
           fi
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Extract values
+      - name: Extract fields
         run: |
           TITLE=$(jq -r '.title' publish.json)
           DATE=$(jq -r '.date' publish.json)
@@ -30,34 +31,36 @@ jobs:
           echo "TITLE=$TITLE" >> $GITHUB_ENV
           echo "DATE=$DATE" >> $GITHUB_ENV
 
-          printf "%s\n" "$CONTENT" > post_content.html
+          echo "<hr>" > new_post.html
+          echo "<h2>$TITLE</h2>" >> new_post.html
+          echo "<p><em>$DATE</em></p>" >> new_post.html
+          echo "$CONTENT" >> new_post.html
 
       - name: Ensure feed file exists
         run: |
           mkdir -p briefs
           if [ ! -f briefs/index.html ]; then
-            echo "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Sheds Field Notes</title><link rel='stylesheet' href='/styles.css'></head><body><div class='container'><h1>Sheds Field Notes</h1><hr></div></body></html>" > briefs/index.html
+            echo "<!DOCTYPE html>" > briefs/index.html
+            echo "<html><head><meta charset='UTF-8'><title>Sheds Field Notes</title><link rel='stylesheet' href='/styles.css'></head>" >> briefs/index.html
+            echo "<body><div class='container'><h1>Sheds Field Notes</h1><hr></div></body></html>" >> briefs/index.html
           fi
 
-      - name: Insert at top of feed
+      - name: Insert post at top
         run: |
-          cp briefs/index.html briefs/index_backup.html
-
           awk '
-          /<hr>/ && !x {
-            print
-            print "<hr>"
-            print "<h2>" ENVIRON["TITLE"] "</h2>"
-            print "<p><em>" ENVIRON["DATE"] "</em></p>"
-            system("cat post_content.html")
-            x=1
-            next
+          /<hr>/ && !done {
+              print;
+              system("cat new_post.html");
+              done=1;
+              next
           }
           { print }
-          ' briefs/index_backup.html > briefs/index.html
+          ' briefs/index.html > briefs/tmp.html
+
+          mv briefs/tmp.html briefs/index.html
 
       - name: Cleanup
-        run: rm publish.json post_content.html briefs/index_backup.html
+        run: rm -f publish.json new_post.html
 
       - name: Commit changes
         run: |

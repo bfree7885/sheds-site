@@ -2,8 +2,6 @@ name: Auto publish field note
 
 on:
   push:
-    branches:
-      - main
     paths:
       - publish.json
 
@@ -12,45 +10,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.SHEDS_TOKEN }}
+      - uses: actions/checkout@v3
 
-      - name: Publish if file exists
+      - name: Stop if publish.json missing
         run: |
           if [ ! -f publish.json ]; then
-            echo "No publish.json found. Skipping."
+            echo "No publish.json found. Exiting."
             exit 0
           fi
 
-          SLUG=$(jq -r '.slug' publish.json)
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Extract fields
+        run: |
           TITLE=$(jq -r '.title' publish.json)
+          DATE=$(jq -r '.date' publish.json)
           CONTENT=$(jq -r '.content' publish.json)
 
-          mkdir -p briefs
+          echo "TITLE=$TITLE" >> $GITHUB_ENV
+          echo "DATE=$DATE" >> $GITHUB_ENV
+          echo "CONTENT<<EOF" >> $GITHUB_ENV
+          echo "$CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-          echo "<!DOCTYPE html>" > briefs/$SLUG.html
-          echo "<html lang=\"en\">" >> briefs/$SLUG.html
-          echo "<head>" >> briefs/$SLUG.html
-          echo "  <meta charset=\"UTF-8\" />" >> briefs/$SLUG.html
-          echo "  <title>$TITLE</title>" >> briefs/$SLUG.html
-          echo "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />" >> briefs/$SLUG.html
-          echo "  <link rel=\"stylesheet\" href=\"/styles.css\">" >> briefs/$SLUG.html
-          echo "</head>" >> briefs/$SLUG.html
-          echo "<body>" >> briefs/$SLUG.html
-          echo "  <div class=\"container\">" >> briefs/$SLUG.html
-          echo "$CONTENT" >> briefs/$SLUG.html
-          echo "  </div>" >> briefs/$SLUG.html
-          echo "</body>" >> briefs/$SLUG.html
-          echo "</html>" >> briefs/$SLUG.html
+      - name: Prepend post to feed
+        run: |
+          TMPFILE=$(mktemp)
 
-          echo "<li><a href=\"$SLUG.html\">$TITLE</a></li>" >> briefs/index.html
+          cat > $TMPFILE <<EOF
+<hr>
+<h2>$TITLE</h2>
+<p><em>$DATE</em></p>
+$CONTENT
 
-          rm publish.json
+EOF
 
-          git config --global user.name "Sheds Automation"
-          git config --global user.email "actions@github.com"
+          awk '/<!-- POSTS INSERTED BELOW -->/ {
+            print;
+            system("cat '"$TMPFILE"'");
+            next
+          }1' briefs/index.html > briefs/index_new.html
+
+          mv briefs/index_new.html briefs/index.html
+
+      - name: Remove publish file
+        run: rm publish.json
+
+      - name: Commit changes
+        run: |
+          git config user.name "Sheds Auto Publisher"
+          git config user.email "actions@github.com"
           git add .
           git commit -m "Auto publish: $TITLE"
           git push

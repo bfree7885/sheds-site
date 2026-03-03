@@ -2,8 +2,10 @@ name: Sheds Auto Publish
 
 on:
   push:
+    branches:
+      - main
     paths:
-      - "publish.json"
+      - publish.json
 
 jobs:
   publish:
@@ -18,7 +20,7 @@ jobs:
       - name: Ensure publish file exists
         run: |
           if [ ! -f publish.json ]; then
-            echo "No publish.json found. Exiting cleanly."
+            echo "No publish.json found. Skipping."
             exit 0
           fi
 

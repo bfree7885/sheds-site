@@ -1,4 +1,4 @@
-name: Sheds Auto Publish
+name: Auto publish field note
 
 on:
   push:
@@ -24,16 +24,34 @@ jobs:
             exit 0
           fi
 
-      - name: Create HTML file
+      - name: Read publish file
         run: |
-          FILENAME=$(jq -r '.filename' publish.json)
-          HTML=$(jq -r '.html' publish.json)
-          echo "$HTML" > briefs/$FILENAME
-
-      - name: Update index
-        run: |
-          FILENAME=$(jq -r '.filename' publish.json)
+          SLUG=$(jq -r '.slug' publish.json)
           TITLE=$(jq -r '.title' publish.json)
+          DATE=$(jq -r '.date' publish.json)
+          CONTENT=$(jq -r '.content' publish.json)
+
+          FILENAME="$SLUG.html"
+
+          mkdir -p briefs
+
+          cat <<EOF > briefs/$FILENAME
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>$TITLE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    $CONTENT
+  </div>
+</body>
+</html>
+EOF
+
           echo "<li><a href=\"$FILENAME\">$TITLE</a></li>" >> briefs/index.html
 
       - name: Remove publish file
@@ -41,8 +59,8 @@ jobs:
 
       - name: Commit changes
         run: |
-          git config user.name "sheds-bot"
-          git config user.email "bot@sheds.local"
+          git config --global user.name "Sheds Automation"
+          git config --global user.email "actions@github.com"
           git add .
-          git commit -m "Auto publish field note" || echo "Nothing to commit"
+          git commit -m "Auto publish: $TITLE"
           git push

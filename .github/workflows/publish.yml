@@ -20,7 +20,7 @@ jobs:
           fi
 
       - name: Install jq
-        run: sudo apt-get install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Extract fields
         run: |
@@ -30,6 +30,7 @@ jobs:
 
           echo "TITLE=$TITLE" >> $GITHUB_ENV
           echo "DATE=$DATE" >> $GITHUB_ENV
+
           echo "CONTENT<<EOF" >> $GITHUB_ENV
           echo "$CONTENT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -38,17 +39,17 @@ jobs:
         run: |
           TMPFILE=$(mktemp)
 
-          cat > $TMPFILE <<EOF
+          cat <<EOF > $TMPFILE
 <hr>
-<h2>$TITLE</h2>
-<p><em>$DATE</em></p>
-$CONTENT
+<h2>${TITLE}</h2>
+<p><em>${DATE}</em></p>
+${CONTENT}
 
 EOF
 
           awk '/<!-- POSTS INSERTED BELOW -->/ {
             print;
-            system("cat '"$TMPFILE"'");
+            system("cat " "'"$TMPFILE"'");
             next
           }1' briefs/index.html > briefs/index_new.html
 
@@ -62,5 +63,5 @@ EOF
           git config user.name "Sheds Auto Publisher"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Auto publish: $TITLE"
+          git commit -m "Auto publish: ${TITLE}" || echo "No changes to commit"
           git push

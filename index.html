@@ -4,127 +4,136 @@
   <meta charset="UTF-8" />
   <title>Sheds</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Global Theme -->
+  <link rel="stylesheet" href="styles.css">
+
   <style>
     body {
       margin: 0;
       padding: 0;
-
       font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     }
+
     .container {
       max-width: 720px;
       margin: 0 auto;
       padding: 120px 24px;
     }
+
     h1 {
       font-size: 3rem;
       margin-bottom: 0.5rem;
       letter-spacing: 0.05em;
     }
+
     p {
       font-size: 1.05rem;
       line-height: 1.6;
       margin-bottom: 1.5rem;
       color: #d0d0d0;
     }
+
     h2 {
       margin-top: 3rem;
       font-size: 1.5rem;
       color: #f4f4f4;
     }
-.preview {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
 
-.preview img {
-  width: 100%;
-  border-radius: 6px;
-  opacity: 0.9;
-}
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
 
-figure {
-  margin: 0;
-}
+    .preview img {
+      width: 100%;
+      border-radius: 6px;
+      opacity: 0.9;
+    }
 
-figcaption {
-  font-size: 0.8rem;
-  color: #9aa0b5;
-  margin-top: 0.4rem;
-}
- ul {
-  margin-top: 1rem;
-  padding-left: 1.2rem;
-}
+    figure {
+      margin: 0;
+    }
 
-li {
-  margin-bottom: 0.75rem;
-}
+    figcaption {
+      font-size: 0.8rem;
+      color: #9aa0b5;
+      margin-top: 0.4rem;
+    }
+
+    ul {
+      margin-top: 1rem;
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin-bottom: 0.75rem;
+    }
+
     .status {
       margin-top: 2.5rem;
       font-size: 0.95rem;
       color: #9aa0b5;
     }
+
     footer {
       margin-top: 4rem;
       font-size: 0.8rem;
       color: #6f758a;
     }
-
-}
-    <link rel="stylesheet" href="./styles.css">
   </style>
 </head>
+
 <body>
   <div class="container">
-    <!-- Sheds logo -->
-<div style="margin-bottom:1.5rem;">
-  <img src="sheds-logo.png"
-       alt="Sheds logo"
-       style="width:140px; height:auto; opacity:0.95;">
-</div>
-    <h1>Sheds</h1>
-<p><strong>GIS-based shed hunting decision support.</strong></p>
 
-<p>
-  Sheds helps people make informed, responsible decisions about where and when
-  to explore. It emphasizes seasonal awareness, land context, and wildlife
-  sensitivity—prioritizing restraint and understanding.
-</p>
+    <!-- Logo -->
+    <div style="margin-bottom:1.5rem;">
+      <img src="sheds-logo.png"
+           alt="Sheds logo"
+           style="width:140px; height:auto; opacity:0.95;">
+    </div>
+
+    <h1>Sheds</h1>
+
+    <p><strong>GIS-based shed hunting decision support.</strong></p>
+
+    <p>
+      Sheds helps people make informed, responsible decisions about where and when
+      to explore. It emphasizes seasonal awareness, land context, and wildlife
+      sensitivity—prioritizing restraint and understanding.
+    </p>
+
     <nav>
-<p>
-  <a href="/briefs/" 
-     style="color:#B4FF00; font-weight:bold; text-decoration:none;"
-     onmouseover="this.style.textDecoration='underline'"
-     onmouseout="this.style.textDecoration='none'">
-    Field Notes →
-  </a>
-</p>
-</p>
-</nav>
+      <p>
+        <a href="/briefs/">Field Notes →</a>
+      </p>
+    </nav>
+
     <h2>What Sheds Will Provide</h2>
 
-<p>
-  Sheds is designed to reduce guesswork around where and when it is appropriate
-  to spend time in the field. Rather than focusing on finds or outcomes, it
-  focuses on context—seasonal timing, land status, and environmental conditions
-  that affect whether exploration makes sense at all.
-</p>
+    <p>
+      Sheds is designed to reduce guesswork around where and when it is appropriate
+      to spend time in the field. Rather than focusing on finds or outcomes, it
+      focuses on context—seasonal timing, land status, and environmental conditions
+      that affect whether exploration makes sense at all.
+    </p>
 
-<p>
-  Over time, Sheds will combine multiple spatial signals into a single,
-  interpretable view so users can make calmer, more informed decisions before
-  heading out. The goal is not to direct movement, but to support restraint,
-  awareness, and intentional planning.
-</p>
+    <p>
+      Over time, Sheds will combine multiple spatial signals into a single,
+      interpretable view so users can make calmer, more informed decisions before
+      heading out. The goal is not to direct movement, but to support restraint,
+      awareness, and intentional planning.
+    </p>
 
-<p>
-  Access to these combined decision-support layers will eventually be available
-  through a subscription model. This allows Sheds to remain independent, avoid
-  advertising or data resale, and prioritize ethical constraints by design.
-</p>
+    <p>
+      Access to these combined decision-support layers will eventually be available
+      through a subscription model. This allows Sheds to remain independent, avoid
+      advertising or data resale, and prioritize ethical constraints by design.
+    </p>
+
     <h2>How Sheds Is Different</h2>
 
     <ul>
@@ -132,35 +141,39 @@ li {
       <li>Enforces seasonal and ethical constraints by design</li>
       <li>Provides decision support, not guarantees or shortcuts</li>
     </ul>
+
     <div class="status">
       Private development. Subscriber release planned.
     </div>
-<h2>Early Preview</h2>
 
-<p>
-  These examples illustrate the types of spatial context Sheds will use to
-  support responsible, seasonally appropriate decision-making.
-</p>
+    <h2>Early Preview</h2>
 
-<div class="preview">
-  <figure>
-    <img src="preview_seasonal.jpg" alt="Seasonal restriction view" />
-    <figcaption>Seasonal restriction</figcaption>
-  </figure>
+    <p>
+      These examples illustrate the types of spatial context Sheds will use to
+      support responsible, seasonally appropriate decision-making.
+    </p>
 
-  <figure>
-    <img src="preview_landstatus.jpg" alt="Land status and access context" />
-    <figcaption>Land status context</figcaption>
-  </figure>
+    <div class="preview">
+      <figure>
+        <img src="preview_seasonal.jpg" alt="Seasonal restriction view" />
+        <figcaption>Seasonal restriction</figcaption>
+      </figure>
 
-  <figure>
-    <img src="preview_education.jpg" alt="Educational view during restricted period" />
-    <figcaption>Education mode</figcaption>
-  </figure>
-</div>
+      <figure>
+        <img src="preview_landstatus.jpg" alt="Land status and access context" />
+        <figcaption>Land status context</figcaption>
+      </figure>
+
+      <figure>
+        <img src="preview_education.jpg" alt="Educational view during restricted period" />
+        <figcaption>Education mode</figcaption>
+      </figure>
+    </div>
+
     <footer>
       Seasonal restrictions and ethical constraints are enforced by design.
     </footer>
+
   </div>
 </body>
 </html>

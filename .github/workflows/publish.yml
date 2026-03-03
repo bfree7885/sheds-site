@@ -12,17 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Stop if publish.json missing
+      - name: Exit if no publish file
         run: |
           if [ ! -f publish.json ]; then
-            echo "No publish.json found. Exiting."
             exit 0
           fi
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Extract fields
+      - name: Extract values
         run: |
           TITLE=$(jq -r '.title' publish.json)
           DATE=$(jq -r '.date' publish.json)
@@ -31,37 +30,26 @@ jobs:
           echo "TITLE=$TITLE" >> $GITHUB_ENV
           echo "DATE=$DATE" >> $GITHUB_ENV
 
-          echo "CONTENT<<EOF" >> $GITHUB_ENV
-          echo "$CONTENT" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          printf "%s\n" "$CONTENT" > post_content.html
 
-      - name: Prepend post to feed
+      - name: Insert at top of feed
         run: |
-          TMPFILE=$(mktemp)
+          cp briefs/index.html briefs/index_backup.html
 
-          cat <<EOF > $TMPFILE
-<hr>
-<h2>${TITLE}</h2>
-<p><em>${DATE}</em></p>
-${CONTENT}
+          {
+            read line
+            echo "$line"
+            cat post_content.html
+            cat briefs/index_backup.html | tail -n +2
+          } > briefs/index.html
 
-EOF
-
-          awk '/<!-- POSTS INSERTED BELOW -->/ {
-            print;
-            system("cat " "'"$TMPFILE"'");
-            next
-          }1' briefs/index.html > briefs/index_new.html
-
-          mv briefs/index_new.html briefs/index.html
-
-      - name: Remove publish file
-        run: rm publish.json
+      - name: Cleanup
+        run: rm publish.json post_content.html briefs/index_backup.html
 
       - name: Commit changes
         run: |
           git config user.name "Sheds Auto Publisher"
           git config user.email "actions@github.com"
           git add .
-          git commit -m "Auto publish: ${TITLE}" || echo "No changes to commit"
+          git commit -m "Auto publish: $TITLE" || echo "Nothing to commit"
           git push

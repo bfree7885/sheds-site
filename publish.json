@@ -1,5 +1,0 @@
-{
-  "filename": "test-auto-publish.html",
-  "title": "Test Auto Publish",
-  "html": "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Test Auto Publish</title><link rel='stylesheet' href='../styles.css'></head><body><div class='container'><h1>Test Auto Publish</h1><p>If you can read this inside /briefs/, automation works.</p></div></body></html>"
-}

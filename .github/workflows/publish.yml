@@ -32,16 +32,29 @@ jobs:
 
           printf "%s\n" "$CONTENT" > post_content.html
 
+      - name: Ensure feed file exists
+        run: |
+          mkdir -p briefs
+          if [ ! -f briefs/index.html ]; then
+            echo "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>Sheds Field Notes</title><link rel='stylesheet' href='/styles.css'></head><body><div class='container'><h1>Sheds Field Notes</h1><hr></div></body></html>" > briefs/index.html
+          fi
+
       - name: Insert at top of feed
         run: |
           cp briefs/index.html briefs/index_backup.html
 
-          {
-            read line
-            echo "$line"
-            cat post_content.html
-            cat briefs/index_backup.html | tail -n +2
-          } > briefs/index.html
+          awk '
+          /<hr>/ && !x {
+            print
+            print "<hr>"
+            print "<h2>" ENVIRON["TITLE"] "</h2>"
+            print "<p><em>" ENVIRON["DATE"] "</em></p>"
+            system("cat post_content.html")
+            x=1
+            next
+          }
+          { print }
+          ' briefs/index_backup.html > briefs/index.html
 
       - name: Cleanup
         run: rm publish.json post_content.html briefs/index_backup.html

@@ -39,3 +39,20 @@ h2 {
 footer {
   color: #6f758a;
 }
+
+/* ===== FIELD NOTES TAKEAWAY ===== */
+
+.takeaway {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+/* ===== TAKEAWAY ANTLER ICON ===== */
+
+.takeaway::before {
+  content: "🦌";
+  margin-right: 8px;
+  font-size: 1.1rem;
+}

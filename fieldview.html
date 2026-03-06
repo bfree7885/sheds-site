@@ -1,6 +1,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -85,22 +87,46 @@ body {
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
 const map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/mapbox/outdoors-v12',
-  center: [-98, 39],
-  zoom: 3
+container: 'map',
+style: 'mapbox://styles/mapbox/outdoors-v12',
+center: [-98, 39],
+zoom: 3
 });
 
 map.addControl(new mapboxgl.NavigationControl());
 
 map.addControl(
-  new mapboxgl.GeolocateControl({
-    positionOptions: {
-      enableHighAccuracy: true
-    },
-    trackUserLocation: true
-  })
+new mapboxgl.GeolocateControl({
+positionOptions: {
+enableHighAccuracy: true
+},
+trackUserLocation: true
+})
 );
+
+/* Layer toggle placeholders */
+
+document.getElementById('terrainLayer').addEventListener('change', function() {
+
+if(this.checked){
+map.setStyle('mapbox://styles/mapbox/outdoors-v12');
+} else {
+map.setStyle('mapbox://styles/mapbox/light-v11');
+}
+
+});
+
+document.getElementById('southSlopes').addEventListener('change', function() {
+
+console.log("South slope layer toggled");
+
+});
+
+document.getElementById('benches').addEventListener('change', function() {
+
+console.log("Bench layer toggled");
+
+});
 
 </script>
 

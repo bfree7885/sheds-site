@@ -4,6 +4,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,6 +21,7 @@
 body{
 margin:0;
 padding:0;
+font-family:sans-serif;
 }
 
 #map{
@@ -34,27 +37,26 @@ top:10px;
 left:10px;
 background:white;
 padding:12px;
-border-radius:6px;
-box-shadow:0 2px 6px rgba(0,0,0,0.3);
-font-family:sans-serif;
+border-radius:8px;
+box-shadow:0 2px 8px rgba(0,0,0,0.3);
 font-size:14px;
 z-index:1;
-width:190px;
+width:200px;
 }
 
 button{
 width:100%;
-margin-top:5px;
-padding:6px;
+margin-top:6px;
+padding:7px;
 border:none;
 background:#2d6cdf;
 color:white;
-border-radius:4px;
+border-radius:5px;
 cursor:pointer;
 }
 
 button.secondary{
-background:#777;
+background:#666;
 }
 
 .layer{
@@ -98,8 +100,6 @@ margin-top:8px;
 
 mapboxgl.accessToken='pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
-/* MAP */
-
 const map=new mapboxgl.Map({
 container:'map',
 style:'mapbox://styles/mapbox/outdoors-v12',
@@ -107,16 +107,9 @@ center:[-98,39],
 zoom:3
 });
 
-/* NAVIGATION */
-
 map.addControl(new mapboxgl.NavigationControl());
 
-map.addControl(new mapboxgl.GeolocateControl({
-positionOptions:{enableHighAccuracy:true},
-trackUserLocation:true
-}));
-
-/* TERRAIN */
+/* TERRAIN SOURCE */
 
 map.on('load',()=>{
 
@@ -129,19 +122,26 @@ maxzoom:14
 
 map.setTerrain({
 source:'terrain',
-exaggeration:1.0
+exaggeration:1.2
 });
+
+/* BETTER HILLSHADE */
 
 map.addLayer({
 id:'hillshade',
 type:'hillshade',
 source:'terrain',
-layout:{visibility:'none'}
+layout:{visibility:'none'},
+paint:{
+'hillshade-shadow-color':'#1f1f1f',
+'hillshade-highlight-color':'#ffffff',
+'hillshade-accent-color':'#8fae66'
+}
 });
 
 });
 
-/* HILLSHADE TOGGLE */
+/* TOGGLE HILLSHADE */
 
 document.getElementById('hillshadeToggle').onchange=function(){
 
@@ -153,15 +153,9 @@ map.setLayoutProperty('hillshade','visibility','none');
 
 };
 
-/* USER MARKER */
+/* USER ARROW MARKER */
 
 let userMarker=null;
-
-/* TRACK SYSTEM */
-
-let tracking=false;
-let trackCoords=[];
-let trackLayerAdded=false;
 
 /* FIND MY TERRAIN */
 
@@ -171,11 +165,22 @@ navigator.geolocation.getCurrentPosition(function(position){
 
 const loc=[position.coords.longitude,position.coords.latitude];
 
-map.flyTo({center:loc,zoom:13});
+map.flyTo({
+center:loc,
+zoom:14
+});
 
 if(userMarker){userMarker.remove();}
 
-userMarker=new mapboxgl.Marker({color:"#007AFF"})
+const arrow=document.createElement('div');
+
+arrow.style.width="0";
+arrow.style.height="0";
+arrow.style.borderLeft="10px solid transparent";
+arrow.style.borderRight="10px solid transparent";
+arrow.style.borderBottom="20px solid #007AFF";
+
+userMarker=new mapboxgl.Marker(arrow)
 .setLngLat(loc)
 .addTo(map);
 
@@ -183,12 +188,19 @@ userMarker=new mapboxgl.Marker({color:"#007AFF"})
 
 };
 
+/* TRACKING */
+
+let tracking=false;
+let trackCoords=[];
+let trackLayerAdded=false;
+
 /* START TRACK */
 
 document.getElementById('startTrack').onclick=function(){
 
 tracking=true;
 trackCoords=[];
+
 alert("Track recording started");
 
 };
@@ -201,7 +213,7 @@ tracking=false;
 
 const name=prompt("Name this hike:");
 
-if(!name) return;
+if(!name)return;
 
 const saved=JSON.parse(localStorage.getItem("sheds_tracks")||"[]");
 
@@ -216,11 +228,11 @@ alert("Hike saved");
 
 };
 
-/* TRACK RECORDING */
+/* RECORD TRACK */
 
 navigator.geolocation.watchPosition(function(position){
 
-if(!tracking) return;
+if(!tracking)return;
 
 const point=[position.coords.longitude,position.coords.latitude];
 
@@ -318,7 +330,7 @@ new mapboxgl.Marker({color:"#22aa22"})
 .setLngLat(e.lngLat)
 .setPopup(
 new mapboxgl.Popup().setText(
-"Elevation: "+Math.round(terrain.elevation)+" m\nSlope: "+terrain.slope.toFixed(2)+"\nAspect: "+terrain.aspect.toFixed(0)+"°"
+"Elevation: "+Math.round(terrain.elevation)+"m\nSlope: "+terrain.slope.toFixed(2)+"\nAspect: "+terrain.aspect.toFixed(0)+"°"
 ))
 .addTo(map);
 
@@ -326,7 +338,7 @@ new mapboxgl.Popup().setText(
 
 };
 
-/* LOAD SAVED HIKES */
+/* LOAD SAVED TRACKS */
 
 document.getElementById('loadTracks').onclick=function(){
 

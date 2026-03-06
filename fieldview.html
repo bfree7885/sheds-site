@@ -2,6 +2,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -83,8 +85,8 @@ margin-top:8px;
 
 <div class="layer">
 <label>
-<input type="checkbox" id="southToggle">
- South-Facing Slopes
+<input type="checkbox" id="hillshadeToggle">
+ Terrain Shading
 </label>
 </div>
 
@@ -105,7 +107,7 @@ center:[-98,39],
 zoom:3
 });
 
-/* NAV CONTROLS */
+/* NAVIGATION */
 
 map.addControl(new mapboxgl.NavigationControl());
 
@@ -114,7 +116,7 @@ positionOptions:{enableHighAccuracy:true},
 trackUserLocation:true
 }));
 
-/* TERRAIN + HILLSHADE */
+/* TERRAIN */
 
 map.on('load',()=>{
 
@@ -139,9 +141,9 @@ layout:{visibility:'none'}
 
 });
 
-/* SOUTH SLOPE TOGGLE */
+/* HILLSHADE TOGGLE */
 
-document.getElementById('southToggle').onchange=function(){
+document.getElementById('hillshadeToggle').onchange=function(){
 
 if(this.checked){
 map.setLayoutProperty('hillshade','visibility','visible');
@@ -263,6 +265,43 @@ coordinates:trackCoords
 
 });
 
+/* TERRAIN ANALYSIS */
+
+function calculateTerrain(lngLat){
+
+const step=0.0001;
+
+const center=map.queryTerrainElevation(lngLat);
+
+const north=map.queryTerrainElevation([
+lngLat.lng,
+lngLat.lat+step
+]);
+
+const east=map.queryTerrainElevation([
+lngLat.lng+step,
+lngLat.lat
+]);
+
+if(center===null||north===null||east===null){
+return null;
+}
+
+const dzdx=east-center;
+const dzdy=north-center;
+
+const slope=Math.sqrt(dzdx*dzdx+dzdy*dzdy);
+
+const aspect=Math.atan2(dzdy,-dzdx)*180/Math.PI;
+
+return{
+elevation:center,
+slope:Math.abs(slope),
+aspect:aspect
+};
+
+}
+
 /* OBSERVATIONS */
 
 document.getElementById('addObservation').onclick=function(){
@@ -271,13 +310,15 @@ alert("Click map to add observation");
 
 map.once('click',function(e){
 
-const elevation=map.queryTerrainElevation(e.lngLat);
+const terrain=calculateTerrain(e.lngLat);
+
+console.log(terrain);
 
 new mapboxgl.Marker({color:"#22aa22"})
 .setLngLat(e.lngLat)
 .setPopup(
 new mapboxgl.Popup().setText(
-"Elevation: "+Math.round(elevation)+" m"
+"Elevation: "+Math.round(terrain.elevation)+" m\nSlope: "+terrain.slope.toFixed(2)+"\nAspect: "+terrain.aspect.toFixed(0)+"°"
 ))
 .addTo(map);
 

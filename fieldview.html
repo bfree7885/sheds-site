@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,9 +24,9 @@ bottom:0;
 width:100%;
 }
 
-/* Layer panel */
+/* Control Panel */
 
-#layerPanel{
+#panel{
 position:absolute;
 top:10px;
 left:10px;
@@ -43,26 +37,31 @@ box-shadow:0 2px 6px rgba(0,0,0,0.3);
 font-family:sans-serif;
 font-size:14px;
 z-index:1;
+width:170px;
 }
 
-#layerPanel h3{
+#panel h3{
 margin:0 0 8px 0;
 font-size:14px;
 }
 
-.layer-item{
-margin-bottom:6px;
-}
-
-#locateButton{
-margin-top:8px;
+button{
 width:100%;
+margin-top:5px;
 padding:6px;
+border:none;
 background:#2d6cdf;
 color:white;
-border:none;
 border-radius:4px;
 cursor:pointer;
+}
+
+button.secondary{
+background:#777;
+}
+
+.layer-item{
+margin-bottom:6px;
 }
 
 </style>
@@ -73,16 +72,22 @@ cursor:pointer;
 
 <div id="map"></div>
 
-<div id="layerPanel">
+<div id="panel">
 
-<h3>Sheds Layers</h3>
+<h3>Sheds</h3>
 
 <div class="layer-item">
 <input type="checkbox" id="southSlopes">
-<label for="southSlopes">South-facing slopes</label>
+<label for="southSlopes">South slopes</label>
 </div>
 
 <button id="locateButton">Find My Terrain</button>
+
+<button id="startTrack">Start Track</button>
+
+<button id="stopTrack" class="secondary">Stop Track</button>
+
+<button id="addObservation">Add Observation</button>
 
 </div>
 
@@ -92,6 +97,8 @@ cursor:pointer;
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
+/* MAP */
+
 const map = new mapboxgl.Map({
 container:'map',
 style:'mapbox://styles/mapbox/outdoors-v12',
@@ -99,40 +106,137 @@ center:[-98,39],
 zoom:3
 });
 
-/* Zoom + compass */
+/* NAV CONTROLS */
 
 map.addControl(new mapboxgl.NavigationControl());
 
-/* GPS location button */
-
 map.addControl(new mapboxgl.GeolocateControl({
-positionOptions:{
-enableHighAccuracy:true
-},
+positionOptions:{enableHighAccuracy:true},
 trackUserLocation:true
 }));
 
-/* Find My Terrain */
+/* USER LOCATION MARKER */
+
+let userMarker=null;
+
+/* TRACK RECORDING */
+
+let tracking=false;
+let trackCoords=[];
+let trackAdded=false;
+
+/* FIND MY TERRAIN */
 
 document.getElementById('locateButton').addEventListener('click',function(){
 
-if(navigator.geolocation){
-
 navigator.geolocation.getCurrentPosition(function(position){
 
-const userLocation=[
+const loc=[
 position.coords.longitude,
 position.coords.latitude
 ];
 
 map.flyTo({
-center:userLocation,
+center:loc,
 zoom:13
 });
 
+if(userMarker){userMarker.remove();}
+
+userMarker=new mapboxgl.Marker({color:"#007AFF"})
+.setLngLat(loc)
+.addTo(map);
+
+});
+
+});
+
+/* START TRACK */
+
+document.getElementById('startTrack').addEventListener('click',function(){
+
+tracking=true;
+trackCoords=[];
+alert("Track recording started");
+
+});
+
+/* STOP TRACK */
+
+document.getElementById('stopTrack').addEventListener('click',function(){
+
+tracking=false;
+alert("Track saved");
+
+});
+
+/* GPS TRACKING */
+
+navigator.geolocation.watchPosition(function(position){
+
+if(!tracking) return;
+
+const point=[
+position.coords.longitude,
+position.coords.latitude
+];
+
+trackCoords.push(point);
+
+if(!trackAdded){
+
+map.addSource('track',{
+type:'geojson',
+data:{
+type:'Feature',
+geometry:{
+type:'LineString',
+coordinates:trackCoords
+}
+}
+});
+
+map.addLayer({
+id:'trackLine',
+type:'line',
+source:'track',
+paint:{
+'line-color':'#ff0000',
+'line-width':4
+}
+});
+
+trackAdded=true;
+
+}
+else{
+
+map.getSource('track').setData({
+type:'Feature',
+geometry:{
+type:'LineString',
+coordinates:trackCoords
+}
 });
 
 }
+
+});
+
+/* OBSERVATION MARKERS */
+
+document.getElementById('addObservation').addEventListener('click',function(){
+
+alert("Click on map to place observation");
+
+map.once('click',function(e){
+
+new mapboxgl.Marker({color:"#22aa22"})
+.setLngLat(e.lngLat)
+.setPopup(new mapboxgl.Popup().setText("Observation"))
+.addTo(map);
+
+});
 
 });
 

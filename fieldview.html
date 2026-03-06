@@ -38,8 +38,7 @@ const map = new mapboxgl.Map({
   container: 'map',
   style: 'mapbox://styles/mapbox/outdoors-v12',
   center: [-98, 39],
-  zoom: 3,
-  pitch: 45
+  zoom: 3
 });
 
 map.addControl(new mapboxgl.NavigationControl());
@@ -52,32 +51,6 @@ map.addControl(
     trackUserLocation: true
   })
 );
-
-map.on('load', () => {
-
-  map.addSource('mapbox-dem', {
-    type: 'raster-dem',
-    url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-    tileSize: 512,
-    maxzoom: 14
-  });
-
-  map.setTerrain({
-    source: 'mapbox-dem',
-    exaggeration: 1.5
-  });
-
-  map.addLayer({
-    id: 'hillshading',
-    type: 'hillshade',
-    source: 'mapbox-dem',
-    layout: {},
-    paint: {
-      'hillshade-shadow-color': '#473B24'
-    }
-  });
-
-});
 
 </script>
 

@@ -2,7 +2,6 @@
 
 
 
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -38,7 +37,7 @@ box-shadow:0 2px 6px rgba(0,0,0,0.3);
 font-family:sans-serif;
 font-size:14px;
 z-index:1;
-width:180px;
+width:190px;
 }
 
 button{
@@ -54,6 +53,10 @@ cursor:pointer;
 
 button.secondary{
 background:#777;
+}
+
+.layer{
+margin-top:8px;
 }
 
 </style>
@@ -78,6 +81,13 @@ background:#777;
 
 <button id="loadTracks">Load Saved Hikes</button>
 
+<div class="layer">
+<label>
+<input type="checkbox" id="southToggle">
+ South-Facing Slopes
+</label>
+</div>
+
 </div>
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -85,7 +95,6 @@ background:#777;
 <script>
 
 mapboxgl.accessToken='pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
-
 
 /* MAP */
 
@@ -96,7 +105,7 @@ center:[-98,39],
 zoom:3
 });
 
-/* NAVIGATION CONTROLS */
+/* NAV CONTROLS */
 
 map.addControl(new mapboxgl.NavigationControl());
 
@@ -105,7 +114,7 @@ positionOptions:{enableHighAccuracy:true},
 trackUserLocation:true
 }));
 
-/* TERRAIN SOURCE */
+/* TERRAIN + HILLSHADE */
 
 map.on('load',()=>{
 
@@ -121,9 +130,28 @@ source:'terrain',
 exaggeration:1.0
 });
 
+map.addLayer({
+id:'hillshade',
+type:'hillshade',
+source:'terrain',
+layout:{visibility:'none'}
 });
 
-/* USER LOCATION MARKER */
+});
+
+/* SOUTH SLOPE TOGGLE */
+
+document.getElementById('southToggle').onchange=function(){
+
+if(this.checked){
+map.setLayoutProperty('hillshade','visibility','visible');
+}else{
+map.setLayoutProperty('hillshade','visibility','none');
+}
+
+};
+
+/* USER MARKER */
 
 let userMarker=null;
 
@@ -235,7 +263,7 @@ coordinates:trackCoords
 
 });
 
-/* OBSERVATIONS WITH TERRAIN DATA */
+/* OBSERVATIONS */
 
 document.getElementById('addObservation').onclick=function(){
 
@@ -244,16 +272,6 @@ alert("Click map to add observation");
 map.once('click',function(e){
 
 const elevation=map.queryTerrainElevation(e.lngLat);
-
-const observation={
-type:"observation",
-lat:e.lngLat.lat,
-lng:e.lngLat.lng,
-elevation:elevation,
-timestamp:Date.now()
-};
-
-console.log(observation);
 
 new mapboxgl.Marker({color:"#22aa22"})
 .setLngLat(e.lngLat)

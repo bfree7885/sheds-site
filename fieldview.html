@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,8 +25,6 @@ bottom:0;
 width:100%;
 }
 
-/* Control Panel */
-
 #panel{
 position:absolute;
 top:10px;
@@ -37,12 +36,7 @@ box-shadow:0 2px 6px rgba(0,0,0,0.3);
 font-family:sans-serif;
 font-size:14px;
 z-index:1;
-width:170px;
-}
-
-#panel h3{
-margin:0 0 8px 0;
-font-size:14px;
+width:180px;
 }
 
 button{
@@ -60,10 +54,6 @@ button.secondary{
 background:#777;
 }
 
-.layer-item{
-margin-bottom:6px;
-}
-
 </style>
 
 </head>
@@ -76,11 +66,6 @@ margin-bottom:6px;
 
 <h3>Sheds</h3>
 
-<div class="layer-item">
-<input type="checkbox" id="southSlopes">
-<label for="southSlopes">South slopes</label>
-</div>
-
 <button id="locateButton">Find My Terrain</button>
 
 <button id="startTrack">Start Track</button>
@@ -89,24 +74,22 @@ margin-bottom:6px;
 
 <button id="addObservation">Add Observation</button>
 
+<button id="loadTracks">Load Saved Hikes</button>
+
 </div>
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 
 <script>
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
+mapboxgl.accessToken='pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
-/* MAP */
-
-const map = new mapboxgl.Map({
+const map=new mapboxgl.Map({
 container:'map',
 style:'mapbox://styles/mapbox/outdoors-v12',
 center:[-98,39],
 zoom:3
 });
-
-/* NAV CONTROLS */
 
 map.addControl(new mapboxgl.NavigationControl());
 
@@ -115,31 +98,25 @@ positionOptions:{enableHighAccuracy:true},
 trackUserLocation:true
 }));
 
-/* USER LOCATION MARKER */
+/* USER MARKER */
 
 let userMarker=null;
 
-/* TRACK RECORDING */
+/* TRACK SYSTEM */
 
 let tracking=false;
 let trackCoords=[];
-let trackAdded=false;
+let trackLayerAdded=false;
 
 /* FIND MY TERRAIN */
 
-document.getElementById('locateButton').addEventListener('click',function(){
+document.getElementById('locateButton').onclick=function(){
 
 navigator.geolocation.getCurrentPosition(function(position){
 
-const loc=[
-position.coords.longitude,
-position.coords.latitude
-];
+const loc=[position.coords.longitude,position.coords.latitude];
 
-map.flyTo({
-center:loc,
-zoom:13
-});
+map.flyTo({center:loc,zoom:13});
 
 if(userMarker){userMarker.remove();}
 
@@ -149,41 +126,52 @@ userMarker=new mapboxgl.Marker({color:"#007AFF"})
 
 });
 
-});
+};
 
 /* START TRACK */
 
-document.getElementById('startTrack').addEventListener('click',function(){
+document.getElementById('startTrack').onclick=function(){
 
 tracking=true;
 trackCoords=[];
 alert("Track recording started");
 
-});
+};
 
 /* STOP TRACK */
 
-document.getElementById('stopTrack').addEventListener('click',function(){
+document.getElementById('stopTrack').onclick=function(){
 
 tracking=false;
-alert("Track saved");
 
+const name=prompt("Name this hike:");
+
+if(!name) return;
+
+const saved=JSON.parse(localStorage.getItem("sheds_tracks")||"[]");
+
+saved.push({
+name:name,
+coords:trackCoords
 });
 
-/* GPS TRACKING */
+localStorage.setItem("sheds_tracks",JSON.stringify(saved));
+
+alert("Hike saved");
+
+};
+
+/* TRACK RECORDING */
 
 navigator.geolocation.watchPosition(function(position){
 
 if(!tracking) return;
 
-const point=[
-position.coords.longitude,
-position.coords.latitude
-];
+const point=[position.coords.longitude,position.coords.latitude];
 
 trackCoords.push(point);
 
-if(!trackAdded){
+if(!trackLayerAdded){
 
 map.addSource('track',{
 type:'geojson',
@@ -206,10 +194,9 @@ paint:{
 }
 });
 
-trackAdded=true;
+trackLayerAdded=true;
 
-}
-else{
+}else{
 
 map.getSource('track').setData({
 type:'Feature',
@@ -223,11 +210,11 @@ coordinates:trackCoords
 
 });
 
-/* OBSERVATION MARKERS */
+/* OBSERVATIONS */
 
-document.getElementById('addObservation').addEventListener('click',function(){
+document.getElementById('addObservation').onclick=function(){
 
-alert("Click on map to place observation");
+alert("Click map to add observation");
 
 map.once('click',function(e){
 
@@ -238,7 +225,38 @@ new mapboxgl.Marker({color:"#22aa22"})
 
 });
 
+};
+
+/* LOAD SAVED HIKES */
+
+document.getElementById('loadTracks').onclick=function(){
+
+const saved=JSON.parse(localStorage.getItem("sheds_tracks")||"[]");
+
+saved.forEach(function(track){
+
+map.addLayer({
+id:'track-'+Math.random(),
+type:'line',
+source:{
+type:'geojson',
+data:{
+type:'Feature',
+geometry:{
+type:'LineString',
+coordinates:track.coords
+}
+}
+},
+paint:{
+'line-color':'#ff6600',
+'line-width':3
+}
 });
+
+});
+
+};
 
 </script>
 

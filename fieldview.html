@@ -1,6 +1,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -83,7 +85,8 @@ cursor:pointer;
 
 <script>
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
+mapboxgl.accessToken = '
+pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
 const map = new mapboxgl.Map({
 container:'map',
@@ -94,7 +97,17 @@ zoom:3
 
 map.addControl(new mapboxgl.NavigationControl());
 
-map.on('load', () => {
+map.addControl(
+new mapboxgl.GeolocateControl({
+positionOptions:{
+enableHighAccuracy:true
+},
+trackUserLocation:true,
+showUserHeading:true
+})
+);
+
+map.on('load',()=>{
 
 map.addSource('southSlopeOverlay',{
 type:'raster',
@@ -118,8 +131,7 @@ document.getElementById('southSlopes').addEventListener('change',function(){
 
 if(this.checked){
 map.setLayoutProperty('southSlopesLayer','visibility','visible');
-}
-else{
+}else{
 map.setLayoutProperty('southSlopesLayer','visibility','none');
 }
 
@@ -132,10 +144,8 @@ if(navigator.geolocation){
 navigator.geolocation.getCurrentPosition(function(position){
 
 const userLocation=[
-
 position.coords.longitude,
 position.coords.latitude
-
 ];
 
 map.flyTo({

@@ -19,17 +19,13 @@ padding:40px;
 max-width:900px;
 }
 
-img{
+img.logo{
 width:120px;
 border-radius:6px;
 }
 
-h1{
-margin-top:20px;
-}
-
 nav{
-margin:18px 0 28px 0;
+margin:20px 0 30px 0;
 font-size:18px;
 }
 
@@ -46,6 +42,18 @@ text-decoration:underline;
 .nav-sep{
 margin:0 10px;
 color:#6a8f3a;
+}
+
+.preview-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:20px;
+margin-top:25px;
+}
+
+.preview-grid img{
+width:100%;
+border-radius:6px;
 }
 
 p{
@@ -67,50 +75,76 @@ line-height:1.6;
 
 <body>
 
-<img src="sheds-logo.png">
+<img src="sheds-logo.png" class="logo">
 
 <h1>Sheds</h1>
 
 <p><strong>GIS-based shed hunting decision support.</strong></p>
 
 <p>
-Sheds helps people make informed, responsible decisions about where and when to explore. 
-It emphasizes seasonal awareness, land context, and wildlife sensitivity—prioritizing 
+Sheds helps people make informed, responsible decisions about where and when to explore.
+It emphasizes seasonal awareness, land context, and wildlife sensitivity—prioritizing
 restraint and understanding.
 </p>
 
 <nav>
 
 <a href="/field-guide/">Field Guide</a>
-
 <span class="nav-sep">→</span>
-
 <a href="/briefs/">Field Notes</a>
-
 <span class="nav-sep">→</span>
-
 <a href="/fieldview.html">Field View</a>
 
 </nav>
 
+<h2>Preview Layers</h2>
+
+<div class="preview-grid">
+
+<div>
+<img src="preview_education.jpg">
+<p><strong>Education</strong><br>
+Basic terrain and seasonal concepts that help people understand where wildlife
+spends time throughout the year.
+</p>
+</div>
+
+<div>
+<img src="preview_landstatus.jpg">
+<p><strong>Land Status</strong><br>
+Land ownership and access awareness to encourage responsible exploration.
+</p>
+</div>
+
+<div>
+<img src="preview_seasonal.jpg">
+<p><strong>Seasonal Timing</strong><br>
+Seasonal wildlife sensitivity layers that highlight when restraint is most important.
+</p>
+</div>
+
+</div>
+
 <h2>What Sheds Will Provide</h2>
 
 <p>
-Sheds is designed to reduce guesswork around where and when it is appropriate to spend time 
-in the field. Rather than focusing on finds or outcomes, it focuses on context—seasonal timing, 
-land status, and environmental conditions that affect whether exploration makes sense at all.
+Sheds is designed to reduce guesswork around where and when it is appropriate to
+spend time in the field. Rather than focusing on finds or outcomes, it focuses
+on context—seasonal timing, land status, and environmental conditions that
+affect whether exploration makes sense at all.
 </p>
 
 <p>
-Over time, Sheds will combine multiple spatial signals into a single, interpretable view so 
-users can make calmer, more informed decisions before heading out. The goal is not to direct 
-movement, but to support restraint, awareness, and intentional planning.
+Over time, Sheds will combine multiple spatial signals into a single,
+interpretable view so users can make calmer, more informed decisions before
+heading out. The goal is not to direct movement, but to support restraint,
+awareness, and intentional planning.
 </p>
 
 <p>
-Access to these combined decision-support layers will eventually be available through a 
-subscription model. This allows Sheds to remain independent, avoid advertising or data resale, 
-and prioritize ethical constraints by design.
+Access to these combined decision-support layers will eventually be available
+through a subscription model. This allows Sheds to remain independent,
+avoid advertising or data resale, and prioritize ethical constraints by design.
 </p>
 
 <h2>How Sheds Is Different</h2>

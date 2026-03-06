@@ -1,8 +1,4 @@
 
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,39 +12,37 @@
 <style>
 
 body {
-  margin:0;
-  padding:0;
+margin:0;
+padding:0;
 }
 
 #map {
-  position:absolute;
-  top:0;
-  bottom:0;
-  width:100%;
+position:absolute;
+top:0;
+bottom:0;
+width:100%;
 }
 
-/* Layer panel */
-
 #layerPanel {
-  position:absolute;
-  top:10px;
-  left:10px;
-  background:white;
-  padding:12px;
-  border-radius:6px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.3);
-  font-family:sans-serif;
-  font-size:14px;
-  z-index:1;
+position:absolute;
+top:10px;
+left:10px;
+background:white;
+padding:12px;
+border-radius:6px;
+box-shadow:0 2px 6px rgba(0,0,0,0.3);
+font-family:sans-serif;
+font-size:14px;
+z-index:1;
 }
 
 #layerPanel h3 {
-  margin:0 0 8px 0;
-  font-size:14px;
+margin:0 0 8px 0;
+font-size:14px;
 }
 
 .layer-item {
-  margin-bottom:6px;
+margin-bottom:6px;
 }
 
 </style>
@@ -64,18 +58,8 @@ body {
 <h3>Sheds Layers</h3>
 
 <div class="layer-item">
-<input type="checkbox" id="terrainLayer" checked>
-<label for="terrainLayer">Terrain</label>
-</div>
-
-<div class="layer-item">
 <input type="checkbox" id="southSlopes">
 <label for="southSlopes">South-facing slopes</label>
-</div>
-
-<div class="layer-item">
-<input type="checkbox" id="benches">
-<label for="benches">Ridge benches</label>
 </div>
 
 </div>
@@ -97,34 +81,39 @@ map.addControl(new mapboxgl.NavigationControl());
 
 map.addControl(
 new mapboxgl.GeolocateControl({
-positionOptions: {
-enableHighAccuracy: true
-},
+positionOptions: { enableHighAccuracy: true },
 trackUserLocation: true
 })
 );
 
-/* Layer toggle placeholders */
+map.on('load', () => {
 
-document.getElementById('terrainLayer').addEventListener('change', function() {
+map.addSource('southSlopeOverlay', {
+type: 'raster',
+tiles: [
+'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+],
+tileSize: 256
+});
 
-if(this.checked){
-map.setStyle('mapbox://styles/mapbox/outdoors-v12');
-} else {
-map.setStyle('mapbox://styles/mapbox/light-v11');
-}
+map.addLayer({
+id: 'southSlopesLayer',
+type: 'raster',
+source: 'southSlopeOverlay',
+layout: { visibility: 'none' },
+paint: { 'raster-opacity': 0.35 }
+});
 
 });
 
 document.getElementById('southSlopes').addEventListener('change', function() {
 
-console.log("South slope layer toggled");
-
-});
-
-document.getElementById('benches').addEventListener('change', function() {
-
-console.log("Bench layer toggled");
+if(this.checked){
+map.setLayoutProperty('southSlopesLayer','visibility','visible');
+}
+else{
+map.setLayoutProperty('southSlopesLayer','visibility','none');
+}
 
 });
 

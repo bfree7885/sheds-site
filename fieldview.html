@@ -1,11 +1,5 @@
 
 
-
-
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -21,7 +15,7 @@
 body{
 margin:0;
 padding:0;
-font-family:sans-serif;
+font-family:Arial,Helvetica,sans-serif;
 }
 
 #map{
@@ -36,23 +30,23 @@ position:absolute;
 top:10px;
 left:10px;
 background:white;
-padding:12px;
+padding:14px;
 border-radius:8px;
-box-shadow:0 2px 8px rgba(0,0,0,0.3);
-font-size:14px;
+box-shadow:0 3px 10px rgba(0,0,0,0.25);
 z-index:1;
-width:200px;
+width:210px;
 }
 
 button{
 width:100%;
 margin-top:6px;
-padding:7px;
+padding:8px;
 border:none;
 background:#2d6cdf;
 color:white;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
+font-size:14px;
 }
 
 button.secondary{
@@ -60,7 +54,8 @@ background:#666;
 }
 
 .layer{
-margin-top:8px;
+margin-top:10px;
+font-size:13px;
 }
 
 </style>
@@ -122,10 +117,10 @@ maxzoom:14
 
 map.setTerrain({
 source:'terrain',
-exaggeration:1.2
+exaggeration:1.3
 });
 
-/* BETTER HILLSHADE */
+/* HILLSHADE */
 
 map.addLayer({
 id:'hillshade',
@@ -133,15 +128,15 @@ type:'hillshade',
 source:'terrain',
 layout:{visibility:'none'},
 paint:{
-'hillshade-shadow-color':'#1f1f1f',
+'hillshade-shadow-color':'#222',
 'hillshade-highlight-color':'#ffffff',
-'hillshade-accent-color':'#8fae66'
+'hillshade-accent-color':'#9fbf7a'
 }
 });
 
 });
 
-/* TOGGLE HILLSHADE */
+/* HILLSHADE TOGGLE */
 
 document.getElementById('hillshadeToggle').onchange=function(){
 
@@ -153,7 +148,7 @@ map.setLayoutProperty('hillshade','visibility','none');
 
 };
 
-/* USER ARROW MARKER */
+/* USER MARKER */
 
 let userMarker=null;
 
@@ -170,6 +165,16 @@ center:loc,
 zoom:14
 });
 
+updateUserMarker(loc);
+
+});
+
+};
+
+/* UPDATE USER MARKER */
+
+function updateUserMarker(loc){
+
 if(userMarker){userMarker.remove();}
 
 const arrow=document.createElement('div');
@@ -184,9 +189,7 @@ userMarker=new mapboxgl.Marker(arrow)
 .setLngLat(loc)
 .addTo(map);
 
-});
-
-};
+}
 
 /* TRACKING */
 
@@ -200,7 +203,6 @@ document.getElementById('startTrack').onclick=function(){
 
 tracking=true;
 trackCoords=[];
-
 alert("Track recording started");
 
 };
@@ -228,15 +230,17 @@ alert("Hike saved");
 
 };
 
-/* RECORD TRACK */
+/* TRACK RECORDING */
 
 navigator.geolocation.watchPosition(function(position){
 
+const loc=[position.coords.longitude,position.coords.latitude];
+
+updateUserMarker(loc);
+
 if(!tracking)return;
 
-const point=[position.coords.longitude,position.coords.latitude];
-
-trackCoords.push(point);
+trackCoords.push(loc);
 
 if(!trackLayerAdded){
 
@@ -326,7 +330,7 @@ const terrain=calculateTerrain(e.lngLat);
 
 console.log(terrain);
 
-new mapboxgl.Marker({color:"#22aa22"})
+const marker=new mapboxgl.Marker({color:"#22aa22"})
 .setLngLat(e.lngLat)
 .setPopup(
 new mapboxgl.Popup().setText(
@@ -338,7 +342,7 @@ new mapboxgl.Popup().setText(
 
 };
 
-/* LOAD SAVED TRACKS */
+/* LOAD SAVED HIKES */
 
 document.getElementById('loadTracks').onclick=function(){
 

@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,6 +12,7 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
 
 <style>
+
 body {
   margin:0;
   padding:0;
@@ -20,6 +24,31 @@ body {
   bottom:0;
   width:100%;
 }
+
+/* Layer panel */
+
+#layerPanel {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:white;
+  padding:12px;
+  border-radius:6px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.3);
+  font-family:sans-serif;
+  font-size:14px;
+  z-index:1;
+}
+
+#layerPanel h3 {
+  margin:0 0 8px 0;
+  font-size:14px;
+}
+
+.layer-item {
+  margin-bottom:6px;
+}
+
 </style>
 
 </head>
@@ -27,6 +56,27 @@ body {
 <body>
 
 <div id="map"></div>
+
+<div id="layerPanel">
+
+<h3>Sheds Layers</h3>
+
+<div class="layer-item">
+<input type="checkbox" id="terrainLayer" checked>
+<label for="terrainLayer">Terrain</label>
+</div>
+
+<div class="layer-item">
+<input type="checkbox" id="southSlopes">
+<label for="southSlopes">South-facing slopes</label>
+</div>
+
+<div class="layer-item">
+<input type="checkbox" id="benches">
+<label for="benches">Ridge benches</label>
+</div>
+
+</div>
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 

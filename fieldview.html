@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,7 +14,7 @@
 body{
 margin:0;
 padding:0;
-font-family:Arial, Helvetica, sans-serif;
+font-family:Arial,Helvetica,sans-serif;
 }
 
 #map{
@@ -62,7 +60,6 @@ font-size:13px;
 #distance{
 margin-top:8px;
 font-size:13px;
-color:#333;
 }
 
 </style>
@@ -137,15 +134,15 @@ type:'hillshade',
 source:'terrain',
 layout:{visibility:'none'},
 paint:{
-'hillshade-shadow-color':'#222',
+'hillshade-shadow-color':'#1f1f1f',
 'hillshade-highlight-color':'#ffffff',
-'hillshade-accent-color':'#9fbf7a'
+'hillshade-accent-color':'#7da35a'
 }
 });
 
 });
 
-/* HILLSHADE */
+/* HILLSHADE TOGGLE */
 
 document.getElementById('hillshadeToggle').onchange=function(){
 
@@ -157,7 +154,7 @@ this.checked?'visible':'none'
 
 };
 
-/* USER MARKER */
+/* USER LOCATION */
 
 let userMarker=null;
 let heading=0;
@@ -187,7 +184,7 @@ userMarker=new mapboxgl.Marker(createArrow())
 
 }
 
-/* LOCATION */
+/* FIND MY TERRAIN */
 
 document.getElementById('locateButton').onclick=function(){
 
@@ -210,9 +207,7 @@ let trackCoords=[];
 let trackLayerAdded=false;
 let totalDistance=0;
 
-/* DISTANCE */
-
-function calculateDistance(a,b){
+function distance(a,b){
 
 const R=6371e3;
 
@@ -267,7 +262,7 @@ alert("Hike saved");
 
 };
 
-/* TRACK */
+/* LIVE LOCATION + TRACK */
 
 navigator.geolocation.watchPosition(function(pos){
 
@@ -284,9 +279,8 @@ trackCoords.push(loc);
 if(trackCoords.length>1){
 
 const last=trackCoords[trackCoords.length-2];
-const d=calculateDistance(last,loc);
 
-totalDistance+=d;
+totalDistance+=distance(last,loc);
 
 const miles=(totalDistance/1609.34).toFixed(2);
 
@@ -340,9 +334,7 @@ function calculateTerrain(lngLat){
 const step=0.0001;
 
 const center=map.queryTerrainElevation(lngLat);
-
 const north=map.queryTerrainElevation([lngLat.lng,lngLat.lat+step]);
-
 const east=map.queryTerrainElevation([lngLat.lng+step,lngLat.lat]);
 
 if(center===null||north===null||east===null) return null;
@@ -351,7 +343,6 @@ const dzdx=east-center;
 const dzdy=north-center;
 
 const slope=Math.sqrt(dzdx*dzdx+dzdy*dzdy);
-
 const aspect=Math.atan2(dzdy,-dzdx)*180/Math.PI;
 
 return{
@@ -384,7 +375,7 @@ new mapboxgl.Popup().setText(
 
 };
 
-/* LOAD TRACKS */
+/* LOAD SAVED TRACKS */
 
 document.getElementById('loadTracks').onclick=function(){
 

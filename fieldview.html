@@ -1,6 +1,8 @@
 
 
 
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -84,12 +86,17 @@ background:#777;
 
 mapboxgl.accessToken='pk.eyJ1IjoiYmZyZWU3ODg1IiwiYSI6ImNtbWU0ajk3YjA5d2kycnB2a296ZjlxbnQifQ.mwFGViXSEvoP-h7I2kvw4Q';
 
+
+/* MAP */
+
 const map=new mapboxgl.Map({
 container:'map',
 style:'mapbox://styles/mapbox/outdoors-v12',
 center:[-98,39],
 zoom:3
 });
+
+/* NAVIGATION CONTROLS */
 
 map.addControl(new mapboxgl.NavigationControl());
 
@@ -98,7 +105,25 @@ positionOptions:{enableHighAccuracy:true},
 trackUserLocation:true
 }));
 
-/* USER MARKER */
+/* TERRAIN SOURCE */
+
+map.on('load',()=>{
+
+map.addSource('terrain',{
+type:'raster-dem',
+url:'mapbox://mapbox.terrain-rgb',
+tileSize:512,
+maxzoom:14
+});
+
+map.setTerrain({
+source:'terrain',
+exaggeration:1.0
+});
+
+});
+
+/* USER LOCATION MARKER */
 
 let userMarker=null;
 
@@ -210,7 +235,7 @@ coordinates:trackCoords
 
 });
 
-/* OBSERVATIONS */
+/* OBSERVATIONS WITH TERRAIN DATA */
 
 document.getElementById('addObservation').onclick=function(){
 
@@ -218,9 +243,24 @@ alert("Click map to add observation");
 
 map.once('click',function(e){
 
+const elevation=map.queryTerrainElevation(e.lngLat);
+
+const observation={
+type:"observation",
+lat:e.lngLat.lat,
+lng:e.lngLat.lng,
+elevation:elevation,
+timestamp:Date.now()
+};
+
+console.log(observation);
+
 new mapboxgl.Marker({color:"#22aa22"})
 .setLngLat(e.lngLat)
-.setPopup(new mapboxgl.Popup().setText("Observation"))
+.setPopup(
+new mapboxgl.Popup().setText(
+"Elevation: "+Math.round(elevation)+" m"
+))
 .addTo(map);
 
 });

@@ -2,31 +2,35 @@
 
 Each shed observation should record the following information.
 
-Location
-Latitude
-Longitude
+## Location
+- Latitude
+- Longitude
+- Date found
 
-Date Found
+## Terrain variables
+- Slope (°)
+- Aspect (°)
+- Elevation (m)
 
-Antler Data
-Points
-Estimated Age Class
-Condition
+## Habitat variables
+- Vegetation type
+- Distance to water (m)
+- Distance to food source (m)
 
-Terrain Variables
-Slope
-Aspect
-Elevation
+## Antler characteristics
+- Points
+- Tine count
+- Beam length estimate (cm)
+- Estimated deer age class
+- Condition
 
-Habitat Variables
-Distance to food source
-Distance to water
-Vegetation type
-
-Environmental Conditions
-Snow depth
-Temperature
-Weather pattern
+## Environmental conditions (future)
+- Snow depth
+- Temperature
+- Weather pattern
 
 These variables allow the heatmap model to identify terrain patterns
-that influence shed distribution.
+that influence shed distribution. The API and Field View form support
+all fields above except environmental conditions.
+
+**Use:** This dataset is designed to train terrain-based shed probability models (e.g. slope, aspect, elevation, habitat, and antler characteristics as predictors).

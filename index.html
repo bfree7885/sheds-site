@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="utf-8">
 <title>Sheds | Terrain Intelligence for Shed Hunting</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <link rel="stylesheet" href="styles.css">
 
 <style>
@@ -18,16 +14,20 @@ color:#e6edf3;
 font-family:Arial, Helvetica, sans-serif;
 margin:0;
 padding:40px;
-max-width:1000px;
+max-width:1100px;
 }
 
-img.logo{
+header{
+margin-bottom:30px;
+}
+
+.logo{
 width:120px;
 border-radius:6px;
 }
 
 nav{
-margin:20px 0 30px 0;
+margin-top:20px;
 font-size:18px;
 }
 
@@ -41,138 +41,123 @@ nav a:hover{
 text-decoration:underline;
 }
 
-.nav-sep{
-margin:0 10px;
+.nav-divider{
+margin:0 12px;
 color:#6a8f3a;
+}
+
+.section{
+margin-top:50px;
 }
 
 .preview-grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:25px;
 margin-top:25px;
 }
 
-.preview-grid img{
+.preview-card img{
 width:100%;
 border-radius:6px;
 }
 
-p{
-line-height:1.6;
-max-width:800px;
-}
-
-h2{
-margin-top:40px;
-}
-
-ul{
+.preview-card p{
+margin-top:10px;
 line-height:1.6;
 }
 
 .goal-box{
 background:#102f43;
-padding:20px;
+padding:25px;
 border-radius:8px;
-margin-top:20px;
+line-height:1.6;
+}
+
+h2{
+margin-bottom:15px;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<img src="sheds-logo.png" class="logo">
+<header>
+<img src="sheds-logo.png" class="logo" alt="Sheds Logo">
 
 <h1>Sheds</h1>
 
 <p><strong>Terrain intelligence for shed hunting.</strong></p>
 
 <p>
-Sheds is a mapping and research platform designed to help people understand
-where deer drop their antlers and why. The project combines terrain analysis,
-wildlife biology, and field observations to build a better understanding of
-shed distribution across landscapes.
+Sheds is a mapping and research platform designed to help people
+understand where deer drop their antlers and why.
+The project combines wildlife biology, terrain analysis,
+and structured field observations to improve shed probability modeling.
 </p>
 
 <nav>
-
-<a href="/field-guide/">Field Guide</a>
-<span class="nav-sep">→</span>
-<a href="/briefs/">Field Notes</a>
-<span class="nav-sep">→</span>
-<a href="/fieldview.html">Field View</a>
-
+<a href="field-guide/index.html">Field Guide</a>
+<span class="nav-divider">→</span>
+<a href="briefs/index.html">Field Notes</a>
+<span class="nav-divider">→</span>
+<a href="fieldview.html">Field View</a>
 </nav>
+
+</header>
+
+
+<section class="section">
 
 <h2>Project Goals</h2>
 
 <div class="goal-box">
 
 <ul>
-
-<li>Teach the ecology and biology behind shed hunting</li>
-
+<li>Teach the ecological science behind shed hunting</li>
 <li>Build a terrain-based navigation platform</li>
-
-<li>Collect structured environmental observations</li>
-
-<li>Improve shed probability heatmaps using real field data</li>
-
-<li>Create a research-quality dataset on shed distribution</li>
-
-<li>Publish educational material and eventually a book based on the dataset</li>
-
+<li>Collect structured environmental field data</li>
+<li>Improve AI-driven shed probability heatmaps</li>
+<li>Create a research-grade dataset on shed distribution</li>
+<li>Publish educational material and a future book based on findings</li>
 </ul>
 
 </div>
 
+</section>
+
+
+<section class="section">
 
 <h2>Heatmap Preview Layers</h2>
 
 <div class="preview-grid">
 
-<div>
-<img src="preview_south_slopes.jpg">
-<p><strong>South Facing Slopes</strong><br>
-Solar exposure and winter bedding patterns often concentrate deer activity
-on south-facing slopes during late winter.
+<div class="preview-card">
+<img src="preview_education.jpg" alt="Education Preview">
+<p><strong>Education Layer</strong><br>
+Explains seasonal behavior and wildlife movement patterns.
 </p>
 </div>
 
-<div>
-<img src="preview_food_edges.jpg">
-<p><strong>Food Edges</strong><br>
-Late winter feeding areas often produce sheds as deer move between food
-sources and bedding cover.
+<div class="preview-card">
+<img src="preview_landstatus.jpg" alt="Land Status Preview">
+<p><strong>Land Status Layer</strong><br>
+Encourages responsible access and land awareness.
 </p>
 </div>
 
-<div>
-<img src="preview_travel_corridors.jpg">
-<p><strong>Travel Corridors</strong><br>
-Terrain funnels, ridges, and creek crossings can concentrate deer movement.
+<div class="preview-card">
+<img src="preview_seasonal.jpg" alt="Seasonal Preview">
+<p><strong>Seasonal Timing Layer</strong><br>
+Highlights seasonal wildlife sensitivity patterns.
 </p>
 </div>
 
 </div>
 
-<h2>Platform Sections</h2>
-
-<ul>
-
-<li><strong>Field Guide</strong> — educational resources explaining the biology
-and terrain patterns behind shed hunting.</li>
-
-<li><strong>Field Notes</strong> — research summaries and current intelligence
-related to deer behavior, winter conditions, and shed timing.</li>
-
-<li><strong>Field View</strong> — an interactive map for navigation, terrain
-analysis, and shed logging.</li>
-
-</ul>
+</section>
 
 </body>
 </html>

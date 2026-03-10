@@ -41,17 +41,19 @@ Open the draft file locally. Check:
 
 Edit as needed. No need to change paths — the template uses the same relative paths as published briefs.
 
-### 4. Move to /briefs to publish
+### 4. Move to /briefs and build
 
 To publish:
 
 1. **Move** the draft file from `drafts/` to `briefs/`.
-2. **Add a preview** to `briefs/index.html`:
-   - Title (e.g. `<h2>…</h2>`)
-   - Short summary (one or two sentences)
-   - Link: `Read Full Brief →` pointing to the new file (e.g. `YYYY-MM-DD-topic.html` or a stable name you prefer).
+2. **Run the build script** to regenerate the Field Notes feed:
+   ```bash
+   python scripts/build_field_notes.py
+   ```
 
-After that, the brief is live. Each brief is a single page; the Field Notes index only shows previews and "Read Full Brief" links.
+The build script reads all `.html` files in `briefs/` (except `index.html`), extracts article content, sorts by date (newest first), and writes `briefs/index.html`. The Field Notes page is a single scrolling feed of full articles.
+
+**Note:** External Source Link must point to the real research paper or report. Do not use placeholder links (e.g. Google Scholar search). If no direct source exists, omit the External Source Link section.
 
 ---
 
@@ -60,7 +62,9 @@ After that, the brief is live. Each brief is a single page; the Field Notes inde
 | Location   | Purpose |
 |-----------|---------|
 | `drafts/` | Draft research briefs. Not public. Use `YYYY-MM-DD-topic.html` naming. |
-| `briefs/` | Published Field Notes. Linked from the site. One HTML file per brief. |
+| `briefs/` | Published brief source files. One HTML file per article. |
+| `briefs/index.html` | Generated feed page (built by script). Do not edit by hand. |
+| `scripts/build_field_notes.py` | Build script. Run after adding or editing briefs. |
 | `drafts/TEMPLATE.html` | Reusable template for new drafts. Copy, replace placeholders, save as new draft. |
 | `docs/research_pipeline.md` | This workflow document. |
 

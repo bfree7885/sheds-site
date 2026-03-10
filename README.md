@@ -8,7 +8,7 @@ Part of the **Waypoint Studio** ecosystem of geospatial tools.
 
 ```
 Waypoint Studio
-  ├ Sheds          — terrain intelligence for shed hunting
+  ├ Sheds           — terrain intelligence for shed hunting
   ├ Fieldry         — nature journaling and environmental observation
   ├ Signal Terrain  — geospatial situational awareness tools
   ├ Terrainbound    — terrain survival simulation
@@ -16,9 +16,13 @@ Waypoint Studio
   └ Steepleaf       — ecological land suitability analysis
 ```
 
-- **Waypoint Studio**: [waypointstudio/index.html](waypointstudio/index.html)
-- **Sheds** (this site): [index.html](index.html), [fieldview.html](fieldview.html)
-- **Other projects**: [fieldry/](fieldry/), [signalterrain/](signalterrain/), [terrainbound/](terrainbound/), [savantsommelier/](savantsommelier/), [steepleaf/](steepleaf/)
+- **Waypoint Studio**: [waypointstudio/index.html](waypointstudio/index.html) — hub for all projects.
+- **Sheds** (this site): [index.html](index.html), [fieldview.html](fieldview.html) — mapping, heatmaps, and field observations for shed hunting.
+- **Fieldry**: [fieldry/](fieldry/) — nature journaling and environmental observation (coming soon).
+- **Signal Terrain**: [signalterrain/](signalterrain/) — geospatial situational awareness (coming soon).
+- **Terrainbound**: [terrainbound/](terrainbound/) — terrain survival simulation (coming soon).
+- **Savant Sommelier**: [savantsommelier/](savantsommelier/) — geospatial wine terroir exploration (coming soon).
+- **Steepleaf**: [steepleaf/](steepleaf/) — ecological land suitability analysis (coming soon).
 
 ## Sheds Structure
 

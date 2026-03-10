@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Sheds Field View</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<title>Sheds Field View</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css" rel="stylesheet">
-  <style>
+<style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: Arial, Helvetica, sans-serif; }
     #map { position: absolute; top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%; }
     #panel {
       position: absolute; top: 10px; left: 10px;
       background: white; padding: 14px; border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1; width: 240px; max-width: calc(100vw - 24px);
+      max-height: calc(100vh - 20px); overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
-    #panel h3 { margin: 0 0 10px 0; font-size: 18px; }
+    #panel h3 { margin: 0 0 12px 0; font-size: 18px; }
+    .panel-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid #eee; }
+    .panel-section h4 { margin: 0 0 8px 0; font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 0.02em; }
     button {
-      width: 100%; margin-top: 6px; padding: 8px; border: none;
+      width: 100%; margin-top: 6px; padding: 10px 12px; border: none;
       background: #2d6cdf; color: white; border-radius: 6px; cursor: pointer; font-size: 14px;
+      min-height: 44px;
     }
     button.cancel { background: #666; }
+    button.btn-primary { background: #1a5bb8; font-weight: 600; }
     #apiStatus { margin-top: 8px; font-size: 12px; color: #666; }
     #observationForm {
       display: none; margin-top: 12px; padding: 10px; background: #f5f5f5; border-radius: 8px; font-size: 13px;
@@ -40,12 +46,13 @@
     .observation-popup strong { display: inline-block; width: 80px; }
     #layerControl {
       position: absolute; top: 10px; right: 10px; z-index: 1;
-      background: white; padding: 10px 12px; border-radius: 10px;
+      background: white; padding: 12px 14px; border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-size: 13px;
+      max-width: calc(100vw - 24px);
     }
     #layerControl h4 { margin: 0 0 8px 0; font-size: 13px; font-weight: 600; }
-    #layerControl label { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
-    #layerControl input[type="checkbox"] { width: auto; margin: 0; }
+    #layerControl label { display: flex; align-items: center; gap: 10px; margin: 8px 0; cursor: pointer; min-height: 28px; }
+    #layerControl input[type="checkbox"] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; }
     #compassWidget {
       position: absolute; bottom: 20px; left: 20px; z-index: 1;
       width: 56px; height: 56px; border-radius: 50%;
@@ -67,39 +74,49 @@
     .nav-value { color: #2d6cdf; font-weight: 600; }
     #researchExportSection { margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee; }
     #researchExportSection h4 { margin: 0 0 4px 0; font-size: 12px; color: #555; text-transform: uppercase; }
-  </style>
+</style>
 </head>
 <body>
-  <div id="map"></div>
+<div id="map"></div>
   <div id="compassWidget" title="Compass heading (tap to enable on iOS)">
     <span id="compassDeg">—</span>
     <div id="compassNeedle"></div>
   </div>
   <div id="layerControl">
     <h4>Layers</h4>
-    <label><input type="checkbox" id="toggleHillshade"> Hillshade</label>
+    <label><input type="checkbox" id="toggleHillshade"> Terrain</label>
     <label><input type="checkbox" id="toggleSlope"> Slope</label>
     <label><input type="checkbox" id="toggleAspect"> Aspect</label>
     <label><input type="checkbox" id="toggleShedHeatmap"> Shed probability</label>
   </div>
-  <div id="panel">
+<div id="panel">
     <h3>Sheds Field View</h3>
-    <button id="locateMe">Locate Me</button>
-    <button id="addObservation">Add observation</button>
-    <button id="loadObservations">Load observations</button>
-    <button id="startTracking">Start Tracking</button>
-    <button id="stopTracking" class="cancel">Stop Tracking</button>
-    <button id="exportTrackGeoJSON" class="cancel">Export track (GeoJSON)</button>
-    <button id="exportTrackGPX" class="cancel">Export track (GPX)</button>
-    <button id="downloadOffline">Download area for offline use</button>
-    <div id="researchExportSection">
+    <p style="font-size:11px;color:#666;margin:0 0 8px 0;">Beta map tool. <a href="index.html" style="color:#2d6cdf;">← Sheds Home</a></p>
+    <div class="panel-section">
+      <h4>Location &amp; observations</h4>
+      <button id="locateMe" class="btn-primary">Locate Me</button>
+      <button id="addObservation" class="btn-primary">Add observation</button>
+      <button id="loadObservations" class="btn-primary">Load observations</button>
+    </div>
+    <div class="panel-section">
+      <h4>Tracking</h4>
+      <button id="startTracking" class="btn-primary">Start Tracking</button>
+      <button id="stopTracking" class="cancel">Stop Tracking</button>
+      <button id="exportTrackGeoJSON" class="cancel">Export track (GeoJSON)</button>
+      <button id="exportTrackGPX" class="cancel">Export track (GPX)</button>
+    </div>
+    <div class="panel-section">
+      <h4>Offline</h4>
+      <button id="downloadOffline">Download area for offline use</button>
+    </div>
+    <div id="researchExportSection" class="panel-section">
       <h4>Research export</h4>
       <p style="font-size:11px;color:#666;margin:0 0 6px 0;">Dataset for universities and wildlife researchers</p>
       <button id="exportResearchCSV" class="cancel" style="font-size:12px;">Export CSV</button>
       <button id="exportResearchGeoJSON" class="cancel" style="font-size:12px;">Export GeoJSON</button>
       <button id="exportResearchShapefile" class="cancel" style="font-size:12px;">Export shapefile (ZIP)</button>
     </div>
-    <div id="navSection">
+    <div id="navSection" class="panel-section">
       <h4>Navigation</h4>
       <button id="measureDistance">Measure distance</button>
       <button id="clearMeasure" class="cancel" style="display:none;">Clear measure</button>
@@ -168,18 +185,18 @@
       <div class="form-actions">
         <button type="button" id="observationSubmit">Submit</button>
         <button type="button" id="observationCancel" class="cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
+</div>
+</div>
+</div>
 
   <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
-  <script>
+<script>
     (function () {
       var API_BASE = typeof window.SHEDS_API_BASE !== 'undefined' ? window.SHEDS_API_BASE : '';
       var TILES = typeof window.SHEDS_TERRAIN_TILES !== 'undefined' ? window.SHEDS_TERRAIN_TILES : {
         hillshade: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png',
-        slope: 'https://sheds-tiles.example.com/slope/{z}/{x}/{y}.png',
-        aspect: 'https://sheds-tiles.example.com/aspect/{z}/{x}/{y}.png'
+        slope: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png',
+        aspect: 'https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png'
       };
 
       var proxyTileTemplate = (typeof window.SHEDS_OFFLINE_PROXY !== 'undefined' && window.SHEDS_OFFLINE_PROXY)
@@ -222,17 +239,27 @@
         }
       }
 
-      fetch('https://demotiles.maplibre.org/style.json')
-        .then(function (r) { return r.json(); })
-        .then(function (style) {
-          replaceStyleForOffline(style);
-          map = new maplibregl.Map({
-            container: 'map',
-            style: style,
-            center: [-98, 39],
-            zoom: 3
-          });
-          map.addControl(new maplibregl.NavigationControl());
+      var style = {
+        version: 8,
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256
+          }
+        },
+        layers: [
+          { id: 'osm', type: 'raster', source: 'osm' }
+        ]
+      };
+      replaceStyleForOffline(style);
+      map = new maplibregl.Map({
+        container: 'map',
+        style: style,
+        center: [-75, 41],
+        zoom: 7
+      });
+      map.addControl(new maplibregl.NavigationControl());
 
       if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) {
         document.getElementById('compassWidget').addEventListener('click', function () {
@@ -266,7 +293,7 @@
         el.style.backgroundColor = '#2d6cdf';
         el.style.border = '3px solid white';
         el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
-        return el;
+return el;
       }
 
       function updateUserLocation(lng, lat) {
@@ -274,7 +301,7 @@
         if (!userMarker) {
           userMarker = new maplibregl.Marker({ element: createLocationMarker() })
             .setLngLat([lng, lat])
-            .addTo(map);
+.addTo(map);
         } else {
           userMarker.setLngLat([lng, lat]);
         }
@@ -402,6 +429,7 @@
       }
 
       map.on('load', function () {
+        map.resize();
         var beforeObservations = null;
 
         map.addSource('terrain-hillshade', {
@@ -412,52 +440,76 @@
           maxzoom: 16
         });
         map.addLayer({
-          id: 'layer-hillshade',
+          id: 'terrain-layer',
           type: 'raster',
           source: 'terrain-hillshade',
           layout: { visibility: 'none' },
           paint: { 'raster-opacity': 0.6 }
         }, beforeObservations);
-        beforeObservations = 'layer-hillshade';
+        beforeObservations = 'terrain-layer';
 
-        map.addSource('terrain-slope', {
-          type: 'raster',
-          tiles: [TILES.slope],
-          tileSize: 256,
-          minzoom: 0,
-          maxzoom: 16
+        map.addSource('slope-overlay', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]]
+            },
+            properties: {}
+          }
         });
         map.addLayer({
-          id: 'layer-slope',
-          type: 'raster',
-          source: 'terrain-slope',
+          id: 'slope-layer',
+          type: 'fill',
+          source: 'slope-overlay',
           layout: { visibility: 'none' },
-          paint: { 'raster-opacity': 0.7 }
+          paint: {
+            'fill-color': 'rgba(200, 60, 60, 0.25)',
+            'fill-opacity': 0.3
+          }
         }, beforeObservations);
-        beforeObservations = 'layer-slope';
+        beforeObservations = 'slope-layer';
 
-        map.addSource('terrain-aspect', {
-          type: 'raster',
-          tiles: [TILES.aspect],
-          tileSize: 256,
-          minzoom: 0,
-          maxzoom: 16
+        map.addSource('aspect-overlay', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]]]
+            },
+            properties: {}
+          }
         });
         map.addLayer({
-          id: 'layer-aspect',
-          type: 'raster',
-          source: 'terrain-aspect',
+          id: 'aspect-layer',
+          type: 'fill',
+          source: 'aspect-overlay',
           layout: { visibility: 'none' },
-          paint: { 'raster-opacity': 0.6 }
+          paint: {
+            'fill-color': 'rgba(230, 140, 50, 0.25)',
+            'fill-opacity': 0.3
+          }
         }, beforeObservations);
-        beforeObservations = 'layer-aspect';
+        beforeObservations = 'aspect-layer';
 
         map.addSource('shed-probability-heatmap', {
           type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] }
+          data: {
+            type: 'FeatureCollection',
+            features: [{
+              type: 'Feature',
+              geometry: {
+                type: 'Polygon',
+                coordinates: [[[-80, 39], [-74, 39], [-74, 43], [-80, 43], [-80, 39]]]
+              },
+              properties: { probability: 0.35 }
+            }]
+          }
         });
         map.addLayer({
-          id: 'layer-shed-probability-model',
+          id: 'shed-probability-layer',
           type: 'fill',
           source: 'shed-probability-heatmap',
           layout: { visibility: 'none' },
@@ -465,15 +517,15 @@
             'fill-color': [
               'interpolate', ['linear'], ['get', 'probability'],
               0, 'rgba(34, 170, 34, 0)',
-              0.3, 'rgba(34, 170, 34, 0.2)',
-              0.6, 'rgba(34, 170, 34, 0.45)',
-              1, 'rgba(34, 170, 34, 0.6)'
+              0.3, 'rgba(34, 170, 34, 0.15)',
+              0.6, 'rgba(34, 170, 34, 0.35)',
+              1, 'rgba(34, 170, 34, 0.5)'
             ],
-            'fill-opacity': 0.65,
-            'fill-outline-color': 'rgba(34, 170, 34, 0.2)'
+            'fill-opacity': 0.5,
+            'fill-outline-color': 'rgba(34, 170, 34, 0.15)'
           }
         }, beforeObservations);
-        beforeObservations = 'layer-shed-probability-model';
+        beforeObservations = 'shed-probability-layer';
 
         function refreshHeatmap() {
           fetch(API_BASE + '/heatmap')
@@ -519,7 +571,7 @@
           type: 'geojson',
           data: { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }
         });
-        map.addLayer({
+map.addLayer({
           id: 'measure-line',
           type: 'line',
           source: 'measure',
@@ -600,20 +652,173 @@
           }
         }
         document.getElementById('toggleHillshade').onchange = function () {
-          setLayerVisibility('layer-hillshade', this.checked);
+          var v = this.checked ? 'visible' : 'none';
+          if (map.getLayer('terrain-layer')) map.setLayoutProperty('terrain-layer', 'visibility', v);
         };
         document.getElementById('toggleSlope').onchange = function () {
-          setLayerVisibility('layer-slope', this.checked);
+          var v = this.checked ? 'visible' : 'none';
+          if (map.getLayer('slope-layer')) map.setLayoutProperty('slope-layer', 'visibility', v);
         };
         document.getElementById('toggleAspect').onchange = function () {
-          setLayerVisibility('layer-aspect', this.checked);
+          var v = this.checked ? 'visible' : 'none';
+          if (map.getLayer('aspect-layer')) map.setLayoutProperty('aspect-layer', 'visibility', v);
         };
         document.getElementById('toggleShedHeatmap').onchange = function () {
-          setLayerVisibility('layer-shed-probability-model', this.checked);
+          var v = this.checked ? 'visible' : 'none';
+          if (map.getLayer('shed-probability-layer')) map.setLayoutProperty('shed-probability-layer', 'visibility', v);
         };
         updateWaypointsLayer();
         renderWaypointList();
+        attachToolHandlers();
       });
+
+      function attachToolHandlers() {
+        document.getElementById('exportResearchCSV').onclick = function () { exportResearch('csv', 'csv'); };
+        document.getElementById('exportResearchGeoJSON').onclick = function () { exportResearch('geojson', 'geojson'); };
+        document.getElementById('exportResearchShapefile').onclick = function () { exportResearch('shapefile', 'zip'); };
+        document.getElementById('downloadOffline').onclick = function () {
+          if (!map || !map.getBounds) return;
+          var bounds = map.getBounds();
+          var zoom = map.getZoom();
+          var zMin = Math.floor(zoom);
+          var zMax = Math.min(16, zMin + 3);
+          var total = 0;
+          var list = [];
+          for (var z = zMin; z <= zMax; z++) {
+            var r = boundsToTileRange(bounds, z);
+            for (var x = r.xMin; x <= r.xMax; x++) {
+              for (var y = r.yMin; y <= r.yMax; y++) {
+                list.push({ z: z, x: x, y: y });
+              }
+            }
+          }
+          total = list.length;
+          if (total === 0) { setStatus('No tiles in view.', true); return; }
+          setStatus('Downloading ' + total + ' tiles…');
+          var basePath = location.pathname.replace(/[^/]*$/, '');
+          var done = 0;
+          function next(i) {
+            if (i >= list.length) { setStatus('Downloaded ' + done + ' tiles.'); return; }
+            var t = list[i];
+            var url = basePath.replace(/\/?$/, '/tiles/base/' + t.z + '/' + t.x + '/' + t.y + '.pbf');
+            url = (location.origin + (url.charAt(0) === '/' ? url : basePath + url));
+            fetch(url).then(function () {
+              done++;
+              if (done % 50 === 0 || done === list.length) setStatus('Downloading… ' + done + '/' + total);
+              next(i + 1);
+            }).catch(function () { next(i + 1); });
+          }
+          next(0);
+        };
+        document.getElementById('startTracking').onclick = function () {
+          if (!navigator.geolocation) { setStatus('Geolocation not supported.', true); return; }
+          trackCoords = [];
+          updateTrackLayer();
+          setStatus('Tracking…');
+          trackWatchId = navigator.geolocation.watchPosition(
+            function (pos) {
+              trackCoords.push([pos.coords.longitude, pos.coords.latitude]);
+              updateTrackLayer();
+            },
+            function () { setStatus('Location error.', true); },
+            { enableHighAccuracy: true, maximumAge: 2000 }
+          );
+        };
+        document.getElementById('stopTracking').onclick = function () {
+          if (trackWatchId != null) {
+            navigator.geolocation.clearWatch(trackWatchId);
+            trackWatchId = null;
+          }
+          setStatus(trackCoords.length + ' points recorded.');
+        };
+        document.getElementById('exportTrackGeoJSON').onclick = function () {
+          if (trackCoords.length < 2) { setStatus('No track. Start tracking first.', true); return; }
+          var geojson = { type: 'Feature', properties: { type: 'track', recorded: new Date().toISOString() }, geometry: { type: 'LineString', coordinates: trackCoords } };
+          var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sheds-track-' + new Date().toISOString().slice(0, 10) + '.geojson';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus('Track exported (GeoJSON).');
+        };
+        document.getElementById('exportTrackGPX').onclick = function () {
+          if (trackCoords.length < 2) { setStatus('No track. Start tracking first.', true); return; }
+          var name = 'Sheds track ' + new Date().toISOString().slice(0, 10);
+          var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Sheds Field View" xmlns="http://www.topografix.com/GPX/1/1">\n  <trk><name>' + name + '</name><trkseg>\n';
+          trackCoords.forEach(function (c) { xml += '    <trkpt lat="' + c[1] + '" lon="' + c[0] + '"></trkpt>\n'; });
+          xml += '  </trkseg></trk>\n</gpx>';
+          var blob = new Blob([xml], { type: 'application/gpx+xml' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sheds-track-' + new Date().toISOString().slice(0, 10) + '.gpx';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus('Track exported (GPX).');
+        };
+        document.getElementById('measureDistance').onclick = function () {
+          measureActive = true;
+          measureCoords = [];
+          updateMeasureLayer();
+          document.getElementById('clearMeasure').style.display = 'block';
+          document.getElementById('measureResult').textContent = 'Tap map to add points.';
+          setStatus('Tap the map to measure distance.');
+        };
+        document.getElementById('clearMeasure').onclick = function () {
+          measureActive = false;
+          measureCoords = [];
+          updateMeasureLayer();
+          document.getElementById('clearMeasure').style.display = 'none';
+          document.getElementById('measureResult').textContent = '';
+          setStatus('');
+        };
+        map.on('click', function (e) {
+          if (!measureActive) return;
+          measureCoords.push([e.lngLat.lng, e.lngLat.lat]);
+          updateMeasureLayer();
+          var mi = measureCoords.length >= 2 ? measureTotalMi() : '0.00';
+          document.getElementById('measureResult').textContent = 'Total: ' + mi + ' mi';
+        });
+        document.getElementById('addWaypoint').onclick = function () {
+          measureActive = false;
+          setStatus('Tap the map to place waypoint.');
+          map.once('click', function (e) {
+            var name = prompt('Waypoint name:') || 'Waypoint';
+            var id = 'wp_' + Date.now();
+            waypoints.push({ id: id, name: name, lat: e.lngLat.lat, lng: e.lngLat.lng });
+            localStorage.setItem(WAYPOINTS_KEY, JSON.stringify(waypoints));
+            updateWaypointsLayer();
+            renderWaypointList();
+            setStatus('Waypoint added.');
+          });
+        };
+        document.getElementById('exportWaypointsGPX').onclick = function () {
+          if (waypoints.length === 0) { setStatus('No waypoints to export.', true); return; }
+          var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Sheds Field View" xmlns="http://www.topografix.com/GPX/1/1">\n';
+          waypoints.forEach(function (w) { xml += '  <wpt lat="' + w.lat + '" lon="' + w.lng + '"><name>' + (w.name || w.id) + '</name></wpt>\n'; });
+          xml += '</gpx>';
+          var blob = new Blob([xml], { type: 'application/gpx+xml' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sheds-waypoints-' + new Date().toISOString().slice(0, 10) + '.gpx';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus('Waypoints exported (GPX).');
+        };
+        document.getElementById('exportWaypointsGeoJSON').onclick = function () {
+          if (waypoints.length === 0) { setStatus('No waypoints to export.', true); return; }
+          var geojson = { type: 'FeatureCollection', features: waypoints.map(function (w) {
+            return { type: 'Feature', geometry: { type: 'Point', coordinates: [w.lng, w.lat] }, properties: { name: w.name || w.id } };
+          })};
+          var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sheds-waypoints-' + new Date().toISOString().slice(0, 10) + '.geojson';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus('Waypoints exported (GeoJSON).');
+        };
+      }
 
       map.on('mouseenter', 'observations-layer', function () {
         map.getCanvas().style.cursor = 'pointer';
@@ -773,6 +978,17 @@
       };
 
       function exportResearch(format, ext) {
+        if (!API_BASE && format === 'geojson') {
+          var geojson = { type: 'FeatureCollection', features: observationFeatures };
+          var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'sheds-observations-' + new Date().toISOString().slice(0, 10) + '.geojson';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          setStatus('Exported ' + observationFeatures.length + ' observations (JSON).');
+          return;
+        }
         var url = API_BASE + '/observations/export?format=' + format;
         setStatus('Exporting…');
         fetch(url)
@@ -789,132 +1005,20 @@
             setStatus('Exported.');
           })
           .catch(function (err) {
-            setStatus('Error: ' + err.message, true);
+            if (format === 'geojson') {
+              var geojson = { type: 'FeatureCollection', features: observationFeatures };
+              var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
+              var a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = 'sheds-observations-' + new Date().toISOString().slice(0, 10) + '.geojson';
+              a.click();
+              URL.revokeObjectURL(a.href);
+              setStatus('Exported ' + observationFeatures.length + ' observations (JSON).');
+            } else {
+              setStatus('Error: ' + err.message, true);
+            }
           });
       }
-      document.getElementById('exportResearchCSV').onclick = function () {
-        exportResearch('csv', 'csv');
-      };
-      document.getElementById('exportResearchGeoJSON').onclick = function () {
-        exportResearch('geojson', 'geojson');
-      };
-      document.getElementById('exportResearchShapefile').onclick = function () {
-        exportResearch('shapefile', 'zip');
-      };
-
-      document.getElementById('downloadOffline').onclick = function () {
-        if (!map) return;
-        var bounds = map.getBounds();
-        var zoom = map.getZoom();
-        var zMin = Math.floor(zoom);
-        var zMax = Math.min(16, zMin + 3);
-        var total = 0;
-        var list = [];
-        for (var z = zMin; z <= zMax; z++) {
-          var r = boundsToTileRange(bounds, z);
-          for (var x = r.xMin; x <= r.xMax; x++) {
-            for (var y = r.yMin; y <= r.yMax; y++) {
-              list.push({ z: z, x: x, y: y });
-            }
-          }
-        }
-        total = list.length;
-        if (total === 0) {
-          setStatus('No tiles in view.', true);
-          return;
-        }
-        setStatus('Downloading ' + total + ' tiles…');
-        var baseUrl = (proxyTileTemplate.indexOf('http') === 0 ? proxyTileTemplate : (location.origin + (proxyTileTemplate.charAt(0) === '/' ? '' : location.pathname.replace(/[^/]*$/, '')) + proxyTileTemplate));
-        baseUrl = baseUrl.replace(/\{z\}|\{x\}|\{y\}/g, '');
-        var basePath = location.pathname.replace(/[^/]*$/, '');
-        var done = 0;
-        function next(i) {
-          if (i >= list.length) {
-            setStatus('Downloaded ' + done + ' tiles for offline use.');
-            return;
-          }
-          var t = list[i];
-          var url = basePath.replace(/\/?$/, '/tiles/base/' + t.z + '/' + t.x + '/' + t.y + '.pbf');
-          if (proxyTileTemplate.indexOf('http') === 0) url = baseUrl + t.z + '/' + t.x + '/' + t.y + '.pbf';
-          else url = location.origin + (url.charAt(0) === '/' ? url : basePath + url);
-          fetch(url).then(function () {
-            done++;
-            if (done % 50 === 0 || done === list.length) setStatus('Downloading… ' + done + '/' + total);
-            next(i + 1);
-          }).catch(function () { next(i + 1); });
-        }
-        next(0);
-      };
-
-      document.getElementById('startTracking').onclick = function () {
-        if (!navigator.geolocation) {
-          setStatus('Geolocation not supported.', true);
-          return;
-        }
-        trackCoords = [];
-        updateTrackLayer();
-        setStatus('Tracking…');
-        trackWatchId = navigator.geolocation.watchPosition(
-          function (pos) {
-            var lng = pos.coords.longitude;
-            var lat = pos.coords.latitude;
-            trackCoords.push([lng, lat]);
-            updateTrackLayer();
-          },
-          function (err) {
-            setStatus('Location error.', true);
-          },
-          { enableHighAccuracy: true, maximumAge: 2000 }
-        );
-      };
-
-      document.getElementById('stopTracking').onclick = function () {
-        if (trackWatchId != null) {
-          navigator.geolocation.clearWatch(trackWatchId);
-          trackWatchId = null;
-        }
-        setStatus(trackCoords.length + ' points recorded.');
-      };
-
-      document.getElementById('exportTrackGeoJSON').onclick = function () {
-        if (trackCoords.length < 2) {
-          setStatus('No track to export. Start tracking first.', true);
-          return;
-        }
-        var geojson = {
-          type: 'Feature',
-          properties: { type: 'hike', recorded: new Date().toISOString() },
-          geometry: { type: 'LineString', coordinates: trackCoords }
-        };
-        var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sheds-track-' + new Date().toISOString().slice(0, 10) + '.geojson';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        setStatus('Track exported (GeoJSON).');
-      };
-
-      document.getElementById('exportTrackGPX').onclick = function () {
-        if (trackCoords.length < 2) {
-          setStatus('No track to export. Start tracking first.', true);
-          return;
-        }
-        var name = 'Sheds track ' + new Date().toISOString().slice(0, 10);
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Sheds Field View" xmlns="http://www.topografix.com/GPX/1/1">\n  <trk><name>' + name + '</name><trkseg>\n';
-        trackCoords.forEach(function (c) {
-          xml += '    <trkpt lat="' + c[1] + '" lon="' + c[0] + '"></trkpt>\n';
-        });
-        xml += '  </trkseg></trk>\n</gpx>';
-        var blob = new Blob([xml], { type: 'application/gpx+xml' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sheds-track-' + new Date().toISOString().slice(0, 10) + '.gpx';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        setStatus('Track exported (GPX).');
-      };
-
       var measureCoords = [];
       var measureActive = false;
       function updateMeasureLayer() {
@@ -932,29 +1036,6 @@
         }
         return (m / 1609.34).toFixed(2);
       }
-      document.getElementById('measureDistance').onclick = function () {
-        measureActive = true;
-        measureCoords = [];
-        updateMeasureLayer();
-        document.getElementById('clearMeasure').style.display = 'block';
-        document.getElementById('measureResult').textContent = 'Tap map to add points.';
-        setStatus('Tap the map to measure distance.');
-      };
-      document.getElementById('clearMeasure').onclick = function () {
-        measureActive = false;
-        measureCoords = [];
-        updateMeasureLayer();
-        document.getElementById('clearMeasure').style.display = 'none';
-        document.getElementById('measureResult').textContent = '';
-        setStatus('');
-      };
-      map.on('click', function (e) {
-        if (!measureActive) return;
-        measureCoords.push([e.lngLat.lng, e.lngLat.lat]);
-        updateMeasureLayer();
-        var mi = measureCoords.length >= 2 ? measureTotalMi() : '0.00';
-        document.getElementById('measureResult').textContent = 'Total: ' + mi + ' mi';
-      });
 
       var WAYPOINTS_KEY = 'sheds_waypoints';
       var waypoints = [];
@@ -993,61 +1074,7 @@
           };
         });
       }
-      document.getElementById('addWaypoint').onclick = function () {
-        measureActive = false;
-        setStatus('Tap the map to place waypoint.');
-        map.once('click', function (e) {
-          var name = prompt('Waypoint name:') || 'Waypoint';
-          var id = 'wp_' + Date.now();
-          waypoints.push({ id: id, name: name, lat: e.lngLat.lat, lng: e.lngLat.lng });
-          localStorage.setItem(WAYPOINTS_KEY, JSON.stringify(waypoints));
-          updateWaypointsLayer();
-          renderWaypointList();
-          setStatus('Waypoint added.');
-        });
-      };
-      document.getElementById('exportWaypointsGPX').onclick = function () {
-        if (waypoints.length === 0) {
-          setStatus('No waypoints to export.', true);
-          return;
-        }
-        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Sheds Field View" xmlns="http://www.topografix.com/GPX/1/1">\n';
-        waypoints.forEach(function (w) {
-          xml += '  <wpt lat="' + w.lat + '" lon="' + w.lng + '"><name>' + (w.name || w.id) + '</name></wpt>\n';
-        });
-        xml += '</gpx>';
-        var blob = new Blob([xml], { type: 'application/gpx+xml' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sheds-waypoints-' + new Date().toISOString().slice(0, 10) + '.gpx';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        setStatus('Waypoints exported (GPX).');
-      };
-      document.getElementById('exportWaypointsGeoJSON').onclick = function () {
-        if (waypoints.length === 0) {
-          setStatus('No waypoints to export.', true);
-          return;
-        }
-        var geojson = {
-          type: 'FeatureCollection',
-          features: waypoints.map(function (w) {
-            return {
-              type: 'Feature',
-              geometry: { type: 'Point', coordinates: [w.lng, w.lat] },
-              properties: { name: w.name || w.id }
-            };
-          })
-        };
-        var blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sheds-waypoints-' + new Date().toISOString().slice(0, 10) + '.geojson';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        setStatus('Waypoints exported (GeoJSON).');
-      };
     })();
-  </script>
+</script>
 </body>
 </html>

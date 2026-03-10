@@ -1,53 +1,115 @@
 # SHEDS PROJECT STATE
+# SHEDS PROJECT STATE
 
-Last Stable Update: [DATE]
+Last updated: March 9, 2026
 
-## Platform
+Live site:
+https://shedhunting.org
 
-Repository: sheds-site
-Hosting: GitHub Pages
+---
 
-## Site Structure
+# Current Platform Status
 
-Home
+## Website
 
-* index.html
+Working sections:
 
-Navigation Map
+Home  
+Field Guide  
+Field Notes (research feed)  
+Field View (map interface)
 
-* fieldview.html
+Field Notes now displays full research briefs in a scrolling feed with newest articles at the top.
 
-Field Guide (education)
+Research articles include:
 
-* /field-guide/
+Research Summary  
+Key Findings  
+Interpretation  
+Terrain Implications (Sheds Take)  
+Citation  
+External Source Link
 
-Field Notes (current intelligence)
+---
 
-* /briefs/
+# Research Pipeline
 
-Assets
+Folders:
 
-* styles.css
-* preview images
+/drafts → AI generated research drafts  
+/briefs → published research briefs  
 
-## Working Features
+Workflow:
 
-* Homepage with preview layers
-* Field Notes article summaries
-* Field Guide background content
-* Field View map prototype
+1. AI generates article draft
+2. Draft saved in /drafts
+3. Review draft
+4. Move file to /briefs to publish
 
-## Current Goal
+---
 
-Build the best shed hunting navigation and intelligence platform.
+# Field View (Mapping System)
 
-Focus Areas
+Technology:
+MapLibre GL JS
 
-1. AI heatmap model
-2. Terrain analysis
-3. Navigation quality
-4. Field intelligence briefs
+Current capabilities:
 
-## Next Development Step
+GPS location  
+Observation logging  
+Track recording  
+Dataset export  
 
-[WRITE ONE CLEAR STEP HERE]
+Layer controls exist for:
+
+Terrain  
+Slope  
+Aspect  
+Shed probability  
+
+NOTE:
+Terrain layers are currently placeholder visual layers and not yet connected to real GIS raster data.
+
+---
+
+# Infrastructure
+
+Hosting: GitHub Pages  
+Repository: github.com/bfree7885/sheds-site  
+
+Development tools:
+
+Cursor AI IDE  
+Git version control  
+GitHub deployment pipeline
+
+Git authentication now uses Personal Access Token.
+
+---
+
+# Known Issues
+
+Field View tools need stabilization.  
+Terrain layers are not yet real GIS data.  
+Field Guide content is still minimal.  
+
+---
+
+# Immediate Development Priorities
+
+1. Stabilize Field View map tools
+2. Connect real terrain raster layers
+3. Expand Field Guide educational content
+4. Improve homepage narrative and project explanation
+
+---
+
+# Long Term Vision
+
+Sheds becomes:
+
+1. Terrain intelligence system for shed hunting
+2. Deer ecology research hub
+3. Crowdsourced shed ecology dataset
+
+Research articles + observation data will eventually support academic research and future publication.

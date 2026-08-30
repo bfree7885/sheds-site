@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en" data-product="shed-hunting" data-shed-host="1">
+<head>
+  <meta charset="UTF-8">
+  <meta name="waypoint-build" content="local">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Shed Hunting field map — habitat interest, likelihood, and private notes. Guidance for where to look, not a claim that antlers are here. Powered by Waypoint.">
+  <meta name="theme-color" content="#181513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Shed Hunting — field map · Powered by Waypoint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="../vendor/wds/wds-experience-v2.css">
+  <link rel="stylesheet" href="../css/sheds-map.css">
+</head>
+<body>
+  <a class="sheds-skip" href="#sheds-map">Skip to map</a>
+  <div class="sheds-app">
+    <div id="sheds-map-shell" aria-busy="true">
+      <div class="sheds-map-canvas">
+        <div id="sheds-map" role="application" aria-label="Interactive topographic field map" tabindex="-1"></div>
+        <div class="sheds-map-loading" id="map-loading" aria-live="polite">
+          <div class="sheds-map-loading__pulse" aria-hidden="true"></div>
+          <p class="sheds-map-loading__text">Reading the land…</p>
+        </div>
+        <div class="sheds-map-offline" id="map-offline" hidden role="status">
+          No network. Live conditions unavailable. Your saved area and field records still work.
+        </div>
+        <div class="sheds-map-tile-status" id="map-tile-status" hidden role="status" aria-live="polite"></div>
+        <div class="sheds-measure-hud" id="measure-hud" hidden role="status" aria-live="polite">
+          <p class="sheds-measure-hud__kicker">Measure</p>
+          <p class="sheds-measure-hud__dist" id="measure-dist">Tap the map to set points</p>
+          <p class="sheds-measure-hud__area" id="measure-area" hidden></p>
+          <div class="sheds-measure-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-measure-undo">Undo</button>
+            <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-measure-clear">Clear</button>
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-measure-done">Done</button>
+          </div>
+        </div>
+        <div class="sheds-inspect-hud" id="inspect-hud" hidden role="dialog" aria-label="Inspect location facts and context" aria-live="polite">
+          <div class="sheds-inspect-hud__head">
+            <p class="sheds-inspect-hud__kicker">Inspect</p>
+            <button type="button" class="sheds-btn sheds-btn--ghost sheds-inspect-hud__close" id="btn-inspect-close">Done</button>
+          </div>
+          <p class="sheds-inspect-hud__lede">What is here, and why it may matter — not a claim that deer or antlers are here.</p>
+          <pre class="sheds-inspect-hud__body" id="inspect-body"></pre>
+          <details class="sheds-inspect-hud__more" id="inspect-more">
+            <summary class="sheds-inspect-hud__more-toggle">Why this may matter and limits</summary>
+            <pre class="sheds-inspect-hud__more-body" id="inspect-more-body"></pre>
+          </details>
+        </div>
+      </div>
+
+      <!-- Immediate: brand + quiet status -->
+      <header class="sheds-hud-top" role="banner">
+        <a class="sheds-hud-brand" href="../" title="Shed Hunting overview">
+          <span class="sheds-hud-brand__mark" aria-hidden="true"></span>
+          <span class="sheds-hud-brand__name">Shed Hunting</span>
+        </a>
+        <div class="sheds-hud-actions">
+          <button type="button" class="sheds-hud-chip" id="btn-map-legend" aria-expanded="false" aria-controls="map-marker-legend" title="Map legend" aria-label="Map legend">
+            <span class="sheds-hud-chip__glyph" aria-hidden="true">?</span>
+          </button>
+          <button type="button" class="sheds-hud-chip" id="btn-status" aria-expanded="false" aria-controls="status-panel" title="Season and coverage" aria-label="Context">
+            <span class="sheds-hud-chip__glyph" aria-hidden="true">i</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- You are here — one calm presence -->
+      <div class="sheds-here" id="nav-hud" aria-live="polite">
+        <button type="button" class="sheds-here__chip" id="btn-here-chip" title="Locate me">
+          <span class="sheds-nav-dot" id="nav-dot" data-state="idle" aria-hidden="true"></span>
+          <span class="sheds-here__label" id="loc-status" data-state="neutral">You · tap to place</span>
+        </button>
+        <span class="sheds-here__track" id="session-pill" data-state="manual" hidden>Tracking</span>
+        <div class="sheds-here__meta" id="nav-meta" hidden>
+          <span id="nav-accuracy"></span>
+          <span id="nav-heading"></span>
+          <span id="nav-to-target"></span>
+        </div>
+      </div>
+
+      <div class="sheds-status-panel" id="status-panel" hidden>
+        <span class="sheds-pill" id="coverage-pill" data-level="limited">Limited input coverage</span>
+        <span class="sheds-pill" id="season-pill" data-phase="unknown">Season context…</span>
+        <span class="sheds-pill" id="obs-count">0 private observations</span>
+        <p class="sheds-note" id="model-note">Seasonal timing, landscape guidance, and today’s field conditions stay separate. Never a find probability. Your notes stay on this device.</p>
+      </div>
+
+      <!-- Map marker legend — YOU / SEARCH / TARGET / OBS -->
+      <div class="sheds-marker-legend" id="map-marker-legend" hidden role="region" aria-label="Map legend">
+        <p class="sheds-marker-legend__title">Map markers</p>
+        <ul class="sheds-marker-legend__list">
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--you" aria-hidden="true"></span><span><strong>YOU</strong> — your device location</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--search" aria-hidden="true"></span><span><strong>SEARCH</strong> — area you chose to analyze</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--target" aria-hidden="true"></span><span><strong>AREA TO INSPECT</strong> — model suggestion, not an antler pin</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--obs" aria-hidden="true"></span><span><strong>OBS</strong> — something you recorded</span></li>
+        </ul>
+        <p class="sheds-note">These stay separate on purpose.</p>
+      </div>
+
+      <!-- Active field session strip -->
+      <div class="sheds-session-strip" id="session-strip" hidden role="status" aria-live="polite">
+        <div class="sheds-session-strip__row">
+          <span class="sheds-session-strip__state" id="session-strip-state">Search active</span>
+          <span class="sheds-session-strip__meta" id="session-strip-meta"></span>
+        </div>
+        <button type="button" class="sheds-btn sheds-btn--compact sheds-btn--primary" id="btn-end-search-strip">End Search</button>
+      </div>
+
+      <!-- First-run coach (dismissible, local) -->
+      <aside class="sheds-coach" id="first-run-coach" hidden role="dialog" aria-modal="false" aria-labelledby="coach-title">
+        <h2 class="sheds-coach__title" id="coach-title">Quick orientation</h2>
+        <ol class="sheds-coach__list">
+          <li><strong>YOU</strong> is your location on the map.</li>
+          <li>Tap the map to choose a <strong>SEARCH AREA</strong>.</li>
+          <li>Sheds shows seasonal timing and mapped landscape guidance.</li>
+          <li>Your observations stay separate and private on this device.</li>
+          <li>Tap <strong>Start Search</strong> when you’re ready to record a field session.</li>
+        </ol>
+        <div class="sheds-coach__actions">
+          <button type="button" class="sheds-btn sheds-btn--primary" id="btn-coach-dismiss">Got it</button>
+        </div>
+      </aside>
+
+      <!-- Field controls: map cluster (locate/zoom) + app dock (search/note/plan/more). -->
+      <div class="sheds-fab-rail" role="toolbar" aria-label="Field actions">
+        <div class="sheds-map-ctrls" role="group" aria-label="Map controls">
+          <button type="button" class="sheds-fab sheds-fab--primary sheds-fab--map" id="btn-locate" title="Locate me" aria-label="Locate me">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span class="sheds-fab__label">Locate</span>
+          </button>
+          <button type="button" class="sheds-fab sheds-fab--map" id="btn-recenter" hidden title="Recenter on me" aria-label="Recenter on me">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+            <span class="sheds-fab__label">Recenter</span>
+          </button>
+          <div class="sheds-zoom-pair" role="group" aria-label="Map zoom">
+            <button type="button" class="sheds-fab sheds-fab--zoom" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">
+              <span class="sheds-fab__glyph" aria-hidden="true">+</span>
+              <span class="sheds-fab__label">In</span>
+            </button>
+            <button type="button" class="sheds-fab sheds-fab--zoom" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">
+              <span class="sheds-fab__glyph" aria-hidden="true">−</span>
+              <span class="sheds-fab__label">Out</span>
+            </button>
+          </div>
+        </div>
+        <div class="sheds-app-dock" role="group" aria-label="Search actions">
+          <button type="button" class="sheds-fab sheds-fab--session" id="btn-track" aria-pressed="false" title="Start Search" aria-label="Start Search">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16c2-6 6-10 8-10s6 4 8 10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="12" cy="6" r="2" fill="currentColor"/></svg>
+            <span class="sheds-fab__label">Search</span>
+          </button>
+          <button type="button" class="sheds-fab" id="btn-add-obs-fab" title="Add note" aria-label="Add note">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>
+            <span class="sheds-fab__label">Note</span>
+          </button>
+          <button type="button" class="sheds-fab" id="btn-field-plan-fab" title="Field Plan" aria-label="Field Plan" aria-controls="sheet-field-plan">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v16H6z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span class="sheds-fab__label">Plan</span>
+          </button>
+          <button type="button" class="sheds-fab" id="btn-more" aria-expanded="false" aria-controls="sheet-tools" title="More" aria-label="More">
+            <svg class="sheds-fab__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="18" cy="12" r="1.8" fill="currentColor"/></svg>
+            <span class="sheds-fab__label">More</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SEARCH LOCATION prompt — Phase 2 accuracy gate -->
+      <div class="sheds-search-prompt" id="search-prompt" hidden role="status" aria-live="polite">
+        <p class="sheds-search-prompt__text" id="search-prompt-text">Tap the area you want to analyze.</p>
+        <div class="sheds-search-prompt__actions">
+          <button type="button" class="sheds-btn sheds-btn--primary" id="btn-analyze-you" hidden>Analyze at YOU</button>
+          <label class="sheds-search-prompt__radius" for="search-radius">
+            Area
+            <select id="search-radius" aria-label="Search area size">
+              <option value="small">Small (~400 m)</option>
+              <option value="medium" selected>Medium (~600 m)</option>
+              <option value="large">Large (~1 km)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Landscape band legend — compact/collapsible on mobile -->
+      <div class="sheds-legend-float" id="heat-legend" hidden aria-label="Landscape guidance legend" data-expanded="false">
+        <button type="button" class="sheds-legend-float__toggle" id="btn-heat-legend-toggle" aria-expanded="false" aria-controls="heat-legend-body">
+          <span class="sheds-legend-float__mode" id="heat-legend-mode">Landscape · MODEL</span>
+          <span class="sheds-legend-float__chev" aria-hidden="true"></span>
+        </button>
+        <div class="sheds-legend-float__body" id="heat-legend-body">
+          <span><i class="sheds-swatch sheds-swatch--low" aria-hidden="true"></i>Limited</span>
+          <span><i class="sheds-swatch sheds-swatch--mid" aria-hidden="true"></i>Some</span>
+          <span><i class="sheds-swatch sheds-swatch--high" aria-hidden="true"></i>Stronger</span>
+          <span class="sheds-legend-float__status" id="heat-legend-status">Mapped landscape structure — not find %</span>
+        </div>
+      </div>
+
+      <!-- Primary trip briefing — WHEN / WHERE / LANDSCAPE / TODAY / OBS / NEXT -->
+      <aside class="sheds-sheet-field sheds-suggest sheds-story" id="plan-card" aria-live="polite" data-expanded="false" data-has-plan="false" data-todays-search="true">
+        <div class="sheds-sheet-field__grab" aria-hidden="true"></div>
+        <button type="button" class="sheds-suggest__summary" id="btn-toggle-plan" aria-expanded="false" aria-controls="plan-details">
+          <span class="sheds-suggest__eyebrow">Field briefing</span>
+          <span class="sheds-suggest__kicker" id="plan-title">Choose a Search Area</span>
+          <span class="sheds-suggest__glance" id="plan-glance">Tap the map to choose an area to inspect.</span>
+          <span class="sheds-suggest__conf" id="plan-stars" aria-label="Next step">Next: set Search Area</span>
+          <span class="sheds-suggest__chev" aria-hidden="true"></span>
+        </button>
+        <div class="sheds-suggest__details" id="plan-details" hidden>
+          <div class="sheds-trip" id="sheds-channels" aria-label="Field guidance">
+            <section class="sheds-trip__block" data-trip="when">
+              <h3 class="sheds-trip__k">When</h3>
+              <p id="channel-timing">Season timing…</p>
+              <p class="sheds-channel__why" id="why-timing"></p>
+            </section>
+            <section class="sheds-trip__block" data-trip="where">
+              <h3 class="sheds-trip__k">Where</h3>
+              <p id="channel-where">Tap the map to choose an area to inspect.</p>
+            </section>
+            <section class="sheds-trip__block" data-trip="landscape">
+              <h3 class="sheds-trip__k">Landscape <span class="sheds-guidance-pill">MODEL</span></h3>
+              <p id="channel-habitat">Landscape guidance isn’t available for this area yet.</p>
+              <p class="sheds-channel__why" id="why-habitat"></p>
+            </section>
+            <section class="sheds-trip__block" data-trip="today">
+              <h3 class="sheds-trip__k">Today’s conditions</h3>
+              <p class="sheds-today__status" id="today-status" role="status">Reading field conditions…</p>
+              <p id="channel-searchability">Field conditions…</p>
+              <p class="sheds-channel__why" id="why-searchability"></p>
+            </section>
+            <section class="sheds-trip__block" data-trip="observed">
+              <h3 class="sheds-trip__k">My observations</h3>
+              <p id="channel-observed">No field observations recorded here yet.</p>
+            </section>
+            <section class="sheds-trip__block" data-trip="next">
+              <h3 class="sheds-trip__k">Next</h3>
+              <p id="channel-next">Set a Search Area, then open Field Plan or Start Search.</p>
+              <p id="channel-confidence" class="sheds-note">Evidence support pending — not find probability</p>
+            </section>
+            <p class="sheds-channel__limits" id="channel-limitations">Guidance only — not exact cast dates, density, or find probability.</p>
+          </div>
+          <div class="sheds-today__windows" id="today-windows" aria-label="Daylight windows"></div>
+          <div class="sheds-today__areas" id="today-areas" aria-label="Areas to consider"></div>
+          <div class="sheds-plan__stats" id="plan-stats" hidden>
+            <div class="sheds-plan__stat"><span class="sheds-plan__stat-label">Direction</span><span id="plan-stat-dir">—</span></div>
+            <div class="sheds-plan__stat"><span class="sheds-plan__stat-label">Distance</span><span id="plan-stat-dist">—</span></div>
+            <div class="sheds-plan__stat"><span class="sheds-plan__stat-label">Search radius</span><span id="plan-stat-area">—</span></div>
+            <div class="sheds-plan__stat"><span class="sheds-plan__stat-label">Walk interest</span><span id="plan-stat-band">—</span></div>
+          </div>
+          <p class="sheds-plan__body" id="plan-body">Locate yourself, or pan to your land and tap to set a Search Area.</p>
+          <p class="sheds-plan__meta" id="plan-meta"></p>
+          <details class="sheds-plan__why-wrap">
+            <summary>More detail</summary>
+            <ul class="sheds-today__signals" id="today-signals"></ul>
+            <p class="sheds-plan__why" id="plan-why"></p>
+            <p class="sheds-today__uncertain" id="today-uncertain"></p>
+            <p class="sheds-plan__meta" id="plan-knowledge-link">
+              <a data-studio-path="/knowledge.html" href="https://waypointstudio.org/knowledge.html">Optional reading — Waypoint Knowledge</a>
+            </p>
+          </details>
+          <div class="sheds-plan__actions" id="plan-actions">
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-open-field-plan">Field Plan</button>
+            <button type="button" class="sheds-btn" id="btn-goto-plan" hidden>Show area to inspect</button>
+            <button type="button" class="sheds-btn" id="btn-mark-partial" hidden>Mark partial</button>
+            <button type="button" class="sheds-btn" id="btn-mark-thorough" hidden>Mark thorough</button>
+            <button type="button" class="sheds-btn" id="btn-mark-revisit" hidden>Revisit later</button>
+          </div>
+          <label class="sheds-plan__note-label" for="session-note">Field note (saved when you End Search)</label>
+          <input class="sheds-plan__note" id="session-note" type="text" maxlength="400" autocomplete="off" enterkeyhint="done" placeholder="Optional — only if useful">
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- More — hunter tools first; Advanced for expert controls -->
+  <div class="sheds-sheet" id="sheet-tools" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tools-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel sheds-sheet__panel--tools">
+      <h2 class="sheds-sheet__title" id="tools-title">More</h2>
+      <p class="sheds-sheet__lede">Field tools for this trip — including Map &amp; layers. Quick notes also live on the + button.</p>
+      <div class="sheds-tools-grid">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-plan">Field Plan</button>
+        <button type="button" class="sheds-btn" id="btn-my-areas">My Search Areas</button>
+        <button type="button" class="sheds-btn" id="btn-save-area">Save Search Area</button>
+        <button type="button" class="sheds-btn" id="btn-add-obs">Add note</button>
+        <button type="button" class="sheds-btn" id="btn-layers" aria-controls="sheet-controls">Map &amp; layers</button>
+        <button type="button" class="sheds-btn" id="btn-history">History</button>
+        <button type="button" class="sheds-btn" id="btn-ethics">Ethics</button>
+        <button type="button" class="sheds-btn" id="btn-export">Export JSON</button>
+        <button type="button" class="sheds-btn" id="btn-import">Import JSON</button>
+        <input id="import-json-file" type="file" accept="application/json,.json" hidden>
+        <a class="sheds-btn" data-studio-path="/contact.html?category=bug&amp;app=shed-hunting&amp;includeTech=1&amp;subject=Sheds%20bug%20report" href="https://waypointstudio.org/contact.html?category=bug&amp;app=shed-hunting&amp;includeTech=1&amp;subject=Sheds%20bug%20report">Report bug</a>
+        <a class="sheds-btn" data-studio-path="/support.html" href="https://waypointstudio.org/support.html">Support</a>
+        <a class="sheds-btn" data-studio-path="/about.html" href="https://waypointstudio.org/about.html">About</a>
+        <a class="sheds-btn" data-studio-path="/privacy.html" href="https://waypointstudio.org/privacy.html">Privacy</a>
+        <a class="sheds-btn" data-studio-path="/terms.html" href="https://waypointstudio.org/terms.html">Terms</a>
+        <a class="sheds-btn" data-studio-path="/contact.html" href="https://waypointstudio.org/contact.html">Contact</a>
+        <a class="sheds-btn" data-powered-by-waypoint href="https://waypointstudio.org/">Powered by Waypoint</a>
+      </div>
+      <details class="sheds-advanced" id="advanced-tools">
+        <summary>Advanced</summary>
+        <p class="sheds-note">Expert / engineering controls. Not required for normal field use.</p>
+        <div class="sheds-tools-grid">
+          <button type="button" class="sheds-btn" id="btn-controls">Model weights</button>
+          <button type="button" class="sheds-btn" id="btn-explain">Explain area</button>
+          <button type="button" class="sheds-btn" id="btn-validate">Validate</button>
+          <a class="sheds-btn" data-studio-path="/contact.html?category=feature&amp;app=shed-hunting&amp;subject=Sheds%20feature%20request" href="https://waypointstudio.org/contact.html?category=feature&amp;app=shed-hunting&amp;subject=Sheds%20feature%20request">Request feature</a>
+        </div>
+      </details>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Saved Search Areas -->
+  <div class="sheds-sheet" id="sheet-areas" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="areas-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="areas-title">My Search Areas</h2>
+      <p class="sheds-sheet__lede">Private on this device. Opening restores SEARCH — not YOU. These are not hotspots or find probabilities.</p>
+      <ul class="sheds-area-list" id="areas-list"></ul>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Search Area -->
+  <div class="sheds-sheet" id="sheet-save-area" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="save-area-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="save-area-title">Save Search Area</h2>
+      <p class="sheds-sheet__lede">Names the current SEARCH center and radius. Private / local-only.</p>
+      <div class="sheds-field">
+        <label for="save-area-name">Name</label>
+        <input id="save-area-name" type="text" maxlength="80" autocomplete="off" placeholder="e.g. North ridge · Milford">
+      </div>
+      <div class="sheds-field">
+        <label for="save-area-notes">Notes (optional)</label>
+        <textarea id="save-area-notes" maxlength="800" rows="2" placeholder="Access, parking, reminders…"></textarea>
+      </div>
+      <p class="sheds-note" id="save-area-meta"></p>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-save-area-confirm">Save</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field Plan -->
+  <div class="sheds-sheet" id="sheet-field-plan" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="field-plan-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="field-plan-title">Field Plan</h2>
+      <p class="sheds-sheet__lede" id="field-plan-lede">Your trip checklist for the active Search Area — guidance, not a find probability.</p>
+      <div id="field-plan-body" class="sheds-field-plan"></div>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-plan-start">Start Search</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session summary -->
+  <div class="sheds-sheet" id="sheet-session-summary" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="session-summary-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="session-summary-title">Search summary</h2>
+      <div id="session-summary-body" class="sheds-session-summary"></div>
+      <p class="sheds-note">Past search does not prove an area is empty of sheds.</p>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Observation sheet -->
+  <div class="sheds-sheet" id="sheet-obs" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="obs-form-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="obs-form-title">Add observation</h2>
+      <p class="sheds-sheet__lede">Private to this device. Coordinates are not uploaded by Sheds. Map tiles still leave provider request traces.</p>
+      <form id="obs-form">
+        <input type="hidden" id="obs-id" value="">
+        <input type="hidden" id="obs-mode" value="create">
+        <p class="sheds-obs-location" id="obs-location-hint">Saving at map center</p>
+        <div class="sheds-actions sheds-actions--compact">
+          <button type="button" class="sheds-btn" id="btn-obs-use-gps">Use my GPS</button>
+        </div>
+        <p class="sheds-note">Species: Whitetail deer (field map focus)</p>
+        <div class="sheds-field">
+          <label for="obs-type">Observation type</label>
+          <select id="obs-type" required></select>
+        </div>
+        <div class="sheds-field">
+          <label for="obs-when">Date &amp; time</label>
+          <input id="obs-when" type="datetime-local">
+        </div>
+        <div class="sheds-field">
+          <label for="obs-note">Note (optional)</label>
+          <textarea id="obs-note" maxlength="800" rows="2" placeholder="Sign, access, habitat…" enterkeyhint="done"></textarea>
+        </div>
+        <div class="sheds-field">
+          <label for="obs-habitat">Habitat (optional)</label>
+          <select id="obs-habitat">
+            <option value="">Skip</option>
+            <option value="hardwoods">Hardwoods</option>
+            <option value="conifer">Conifer / thermal</option>
+            <option value="edge">Edge / transition</option>
+            <option value="field">Field / food plot</option>
+            <option value="wetland">Wetland / creek</option>
+            <option value="ridge">Ridge / south slope</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div id="deer-extra" hidden>
+          <p class="sheds-sheet__lede">Deer details (optional) — user-reported, not proof beyond what you recorded.</p>
+          <div class="sheds-field" id="sign-detail-wrap" hidden>
+            <label for="obs-sign-detail">Sign detail</label>
+            <select id="obs-sign-detail">
+              <option value="unknown">Unknown / general</option>
+              <option value="tracks">Tracks</option>
+              <option value="scat">Scat</option>
+              <option value="rub">Rub</option>
+              <option value="scrape">Scrape</option>
+              <option value="other_sign">Other sign</option>
+            </select>
+          </div>
+          <div class="sheds-grid-2">
+            <div class="sheds-field">
+              <label for="obs-sex">Sex</label>
+              <select id="obs-sex">
+                <option value="unknown">Unknown</option>
+                <option value="buck">Buck</option>
+                <option value="doe">Doe</option>
+                <option value="fawn_unknown">Fawn (sex unknown)</option>
+              </select>
+            </div>
+            <div class="sheds-field">
+              <label for="obs-class">Class</label>
+              <select id="obs-class">
+                <option value="unknown">Unknown</option>
+                <option value="fawn">Fawn</option>
+                <option value="yearling">Yearling</option>
+                <option value="mature">Mature</option>
+                <option value="not_applicable">N/A</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="sheds-grid-2">
+          <div class="sheds-field">
+            <label for="obs-confidence">Confidence</label>
+            <select id="obs-confidence">
+              <option value="uncertain">Uncertain</option>
+              <option value="probable" selected>Probable</option>
+              <option value="confirmed">Confirmed</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="obs-quantity">Quantity (optional)</label>
+            <input id="obs-quantity" type="number" min="0" step="1" inputmode="numeric">
+          </div>
+        </div>
+        <div class="sheds-field">
+          <label for="obs-photo-ref">Photo reference (optional, local note only)</label>
+          <input id="obs-photo-ref" type="text" maxlength="240" autocomplete="off" placeholder="Filename or album note — not uploaded">
+          <p class="sheds-note">Sheds does not upload photos. This is a private reminder string on this device.</p>
+        </div>
+        <div id="sheds-extra" hidden>
+          <p class="sheds-sheet__lede">Shed details (whitetail) — optional</p>
+          <div class="sheds-grid-2">
+            <div class="sheds-field">
+              <label for="shed-side">Side</label>
+              <select id="shed-side">
+                <option value="unknown">Unknown</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <div class="sheds-field">
+              <label for="shed-freshness">Freshness</label>
+              <select id="shed-freshness">
+                <option value="unknown">Unknown</option>
+                <option value="fresh">Fresh</option>
+                <option value="weathered">Weathered</option>
+                <option value="old">Old</option>
+              </select>
+            </div>
+            <div class="sheds-field">
+              <label for="shed-count">Antlers</label>
+              <input id="shed-count" type="number" min="1" max="2" value="1">
+            </div>
+            <label class="sheds-check"><input type="checkbox" id="shed-collected"> Collected (vs left in place)</label>
+          </div>
+        </div>
+        <p class="sheds-error" id="obs-error" hidden></p>
+        <div class="sheds-actions">
+          <button type="submit" class="sheds-btn sheds-btn--primary">Save</button>
+          <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+          <button type="button" class="sheds-btn" id="obs-delete" hidden>Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Controls sheet -->
+  <div class="sheds-sheet" id="sheet-controls" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="controls-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="controls-title">Map &amp; layers</h2>
+      <p class="sheds-sheet__lede">What you see on the map. Landscape guidance stays separate from your observations unless you opt in under Advanced. Satellite imagery is landscape context — not proof of deer presence.</p>
+      <p class="sheds-note" id="inputs-summary"></p>
+
+        <div class="sheds-field">
+          <label for="basemap-select">Basemap</label>
+          <select id="basemap-select" aria-label="Basemap">
+            <option value="street">Street</option>
+            <option value="topo">Topographic</option>
+            <option value="satellite">Satellite</option>
+            <option value="hybrid">Hybrid (imagery + labels)</option>
+          </select>
+          <p class="sheds-note">Saved on this device. Imagery helps see fields, edges, and access — not biological certainty.</p>
+        </div>
+
+        <div class="sheds-field">
+          <span class="sheds-field__label">Field tools</span>
+          <div class="sheds-tools-grid sheds-tools-grid--compact">
+            <button type="button" class="sheds-btn" id="btn-measure">Measure distance</button>
+            <button type="button" class="sheds-btn" id="btn-inspect-point">Inspect next tap</button>
+          </div>
+          <p class="sheds-note">Measure and Inspect temporarily take map taps so SEARCH stays intentional. Finish or cancel to return to normal tapping.</p>
+        </div>
+
+        <div class="sheds-field">
+          <span class="sheds-field__label">Guidance on map</span>
+          <p class="sheds-note" id="guidance-mode-label">MODEL — mapped landscape (observations excluded)</p>
+        </div>
+
+        <label class="sheds-check"><input type="checkbox" id="heat-visible" checked> Show landscape guidance overlay</label>
+      <label class="sheds-check"><input type="checkbox" id="obs-visible" checked> Show observation markers</label>
+      <label class="sheds-check"><input type="checkbox" id="coverage-visible" checked> Show search-coverage marks</label>
+      <label class="sheds-check"><input type="checkbox" id="sgl-visible"> Show State Game Lands (access context only)</label>
+      <p class="sheds-note" id="sgl-note">SGL outlines are access context — not landscape scores. Verify current regulations.</p>
+      <div class="sheds-field">
+        <label for="search-radius-tools">SEARCH AREA size</label>
+        <select id="search-radius-tools" aria-label="Search area size (tools)">
+          <option value="small">Small (~400 m)</option>
+          <option value="medium" selected>Medium (~600 m)</option>
+          <option value="large">Large (~1 km)</option>
+        </select>
+        <p class="sheds-note">Tap the map to set SEARCH. GPS updates do not move it.</p>
+      </div>
+      <div class="sheds-field">
+        <label for="heat-mode">Overlay mode</label>
+        <select id="heat-mode">
+          <option value="habitat" selected>Landscape MODEL</option>
+          <option value="biological">Landscape MODEL (legacy id)</option>
+          <option value="observed">My observations only</option>
+        </select>
+        <p class="sheds-note" id="heat-mode-hint">MODEL uses mapped land cover / edge / slope inside SEARCH. Season and weather do not paint landscape. Outside a GIS pack: honest unavailable — no decorative fallback.</p>
+      </div>
+      <fieldset class="sheds-fieldset" id="obs-heat-filters">
+        <legend>Observation overlay filters</legend>
+        <div class="sheds-grid-2">
+          <div class="sheds-field">
+            <label for="heat-tod">Time of day</label>
+            <select id="heat-tod">
+              <option value="all" selected>All</option>
+              <option value="morning">Morning</option>
+              <option value="midday">Midday</option>
+              <option value="evening">Evening</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="heat-season">Season</label>
+            <select id="heat-season">
+              <option value="all" selected>All</option>
+              <option value="winter">Winter</option>
+              <option value="late_winter_spring">Late winter / spring</option>
+              <option value="summer">Summer</option>
+              <option value="fall">Fall</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="heat-wx">Weather at note</label>
+            <select id="heat-wx">
+              <option value="any" selected>Any / unknown</option>
+              <option value="snowy">Snowy or freezing</option>
+              <option value="mild">Mild (≥8°C)</option>
+              <option value="windy">Windy (≥6 m/s)</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="heat-range">Date range</label>
+            <select id="heat-range">
+              <option value="all" selected>All dates</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="365">Last year</option>
+            </select>
+          </div>
+        </div>
+        <p class="sheds-note">Weather filter only matches notes that saved a weather snapshot.</p>
+      </fieldset>
+      <div class="sheds-field">
+        <label for="heat-opacity">Overlay opacity <span id="heat-opacity-val">42%</span></label>
+        <input id="heat-opacity" type="range" min="0.15" max="0.75" step="0.05" value="0.42">
+      </div>
+      <div class="sheds-field">
+        <label for="obs-filter">Filter observations</label>
+        <select id="obs-filter"></select>
+      </div>
+      <details class="sheds-advanced" id="advanced-map-controls">
+        <summary>Advanced model controls</summary>
+        <p class="sheds-note">Off by default: observations do not change Landscape MODEL.</p>
+        <label class="sheds-check">
+          <input type="checkbox" id="include-obs-habitat">
+          Include my observations in landscape guidance
+        </label>
+        <p class="sheds-note">When on, private notes use capped influence — not find %. One find cannot dominate the Search Area.</p>
+        <label class="sheds-check"><input type="checkbox" id="confidence-overlay"> Confidence hatch (limited inputs)</label>
+        <label class="sheds-check"><input type="checkbox" id="diagnostic-mode"> Diagnostic factor inspector</label>
+        <label class="sheds-check"><input type="checkbox" id="compare-mode"> Compare vs balanced baseline</label>
+        <label class="sheds-check"><input type="checkbox" id="offline-forced"> Force limited-data / offline scoring</label>
+        <div class="sheds-field">
+          <label for="model-preset">Model preset (emphasis only)</label>
+          <select id="model-preset"></select>
+          <p class="sheds-note" id="preset-hint"></p>
+        </div>
+        <div class="sheds-field">
+          <label for="season-override">Seasonal phase</label>
+          <select id="season-override"></select>
+          <p class="sheds-note">Manual override is a preference, not established antler-drop fact.</p>
+        </div>
+        <h3 class="sheds-sheet__lede">Biological influence weights</h3>
+        <p class="sheds-note">Weights are preferences. They do not invent data. See docs/BIOLOGICAL_MODEL.md.</p>
+        <div class="sheds-grid-2">
+        <div class="sheds-field"><label for="w-season">Season timing</label>
+          <select id="w-season" data-weight="season"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-slope">Slope</label>
+          <select id="w-slope" data-weight="slope"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-aspect">Aspect / sun</label>
+          <select id="w-aspect" data-weight="aspect"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-terrainForm">Terrain microforms</label>
+          <select id="w-terrainForm" data-weight="terrainForm"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-thermalCover">Thermal / winter cover</label>
+          <select id="w-thermalCover" data-weight="thermalCover"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-feeding">Feeding proximity</label>
+          <select id="w-feeding" data-weight="feeding"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-bedding">Bedding / cover</label>
+          <select id="w-bedding" data-weight="bedding"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-edges">Habitat edges</label>
+          <select id="w-edges" data-weight="edges"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-corridors">Travel corridors</label>
+          <select id="w-corridors" data-weight="corridors"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-deerSign">Deer sign</label>
+          <select id="w-deerSign" data-weight="deerSign"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-fences">Fence crossings</label>
+          <select id="w-fences" data-weight="fences"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-shedFinds">Prior shed finds</label>
+          <select id="w-shedFinds" data-weight="shedFinds"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-humanPressure">Human pressure</label>
+          <select id="w-humanPressure" data-weight="humanPressure"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-search">Prior search coverage</label>
+          <select id="w-search" data-weight="searchHistory"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        <div class="sheds-field"><label for="w-snow">Snow / cold / wind</label>
+          <select id="w-snow" data-weight="snow"><option value="off">Off</option><option value="low">Low</option><option value="balanced" selected>Balanced</option><option value="strong">Strong</option></select></div>
+        </div>
+        <div class="sheds-actions">
+          <button type="button" class="sheds-btn" id="btn-reset-weights">Reset balanced defaults</button>
+        </div>
+      </details>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explain sheet -->
+  <div class="sheds-sheet" id="sheet-explain" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="explain-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="explain-title">Why this area?</h2>
+      <p class="sheds-sheet__lede" id="explain-body"></p>
+      <p class="sheds-note" id="explain-breakdown"></p>
+      <pre class="sheds-tech" id="explain-taxonomy" style="max-height:12rem;white-space:pre-wrap;" aria-label="Factor taxonomy and confidence"></pre>
+      <p class="sheds-note" id="explain-compare"></p>
+      <details>
+        <summary>Technical breakdown</summary>
+        <pre class="sheds-tech" id="explain-tech"></pre>
+      </details>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-validate-here">Record field validation</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field validation -->
+  <div class="sheds-sheet" id="sheet-validate" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="validate-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="validate-title">Field validation</h2>
+      <p class="sheds-sheet__lede">Evidence for later refinement — not automatic biological truth. A “no shed” result does not prove the model wrong.</p>
+      <p class="sheds-note" id="val-model-hint"></p>
+      <form id="val-form">
+        <input type="hidden" id="val-lat">
+        <input type="hidden" id="val-lng">
+        <div class="sheds-field">
+          <label for="val-promising">Did the area appear promising?</label>
+          <select id="val-promising">
+            <option value="unknown">Unknown</option>
+            <option value="yes">Yes</option>
+            <option value="mixed">Mixed</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <label class="sheds-check"><input type="checkbox" id="val-sign"> Deer sign encountered</label>
+        <label class="sheds-check"><input type="checkbox" id="val-bedfeed"> Bedding or feeding evidence</label>
+        <div class="sheds-field">
+          <label for="val-access">Obstacles / access notes</label>
+          <input id="val-access" type="text" maxlength="400" autocomplete="off">
+        </div>
+        <div class="sheds-grid-2">
+          <div class="sheds-field">
+            <label for="val-shed">Shed outcome</label>
+            <select id="val-shed">
+              <option value="not_found">Not found</option>
+              <option value="found">Found</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="val-effort">Search effort</label>
+            <select id="val-effort">
+              <option value="light">Light</option>
+              <option value="partial" selected>Partial</option>
+              <option value="thorough">Thorough</option>
+            </select>
+          </div>
+          <div class="sheds-field">
+            <label for="val-confidence">Confidence in this note</label>
+            <select id="val-confidence">
+              <option value="uncertain">Uncertain</option>
+              <option value="probable" selected>Probable</option>
+              <option value="confirmed">Confirmed</option>
+            </select>
+          </div>
+        </div>
+        <div class="sheds-field">
+          <label for="val-notes">Notes (optional)</label>
+          <textarea id="val-notes" maxlength="800" rows="3"></textarea>
+        </div>
+        <p class="sheds-error" id="val-error" hidden></p>
+        <div class="sheds-actions">
+          <button type="submit" class="sheds-btn sheds-btn--primary">Save validation</button>
+          <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- History sheet -->
+  <div class="sheds-sheet" id="sheet-history" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="history-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="history-title">Search history</h2>
+      <p class="sheds-sheet__lede">Private sessions and cumulative effort on this device. Past search does not prove an area is empty.</p>
+      <pre class="sheds-tech" id="history-body" style="max-height:50vh;white-space:pre-wrap;"></pre>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn" data-close-sheet>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ethics sheet -->
+  <div class="sheds-sheet" id="sheet-ethics" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="ethics-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="ethics-title">Field ethics &amp; honesty</h2>
+      <ul class="sheds-ethics-list">
+        <li><strong>Privacy.</strong> GPS, Search Areas, observations, and sessions stay on-device; coordinates are not placed in share URLs or analytics. Weather/elevation queries send approximate lat/lng to Open-Meteo.</li>
+        <li><strong>Property &amp; law.</strong> This map does not grant legal access. Confirm permission and local shed seasons.</li>
+        <li><strong>Wildlife.</strong> Do not chase, harass, or displace wintering deer. Approach bedding notes carefully.</li>
+        <li><strong>Habitat.</strong> Avoid trampling sensitive areas; leave no trash; respect closures.</li>
+        <li><strong>Privacy.</strong> Observations, tracks, and validations stay in this browser’s storage. Export creates a file you control.</li>
+        <li><strong>Map providers.</strong> Basemap tile requests (Esri World Street / Topo / Imagery by default; never OSMF public raster) and optional Open-Meteo elevation/weather reveal approximate location to those services.</li>
+        <li><strong>Model honesty.</strong> Timing, habitat, searchability, and evidence support are separate. Habitat uses real land cover/edge/slope inside your SEARCH AREA (or stays empty). Never a find probability.</li>
+        <li><strong>Sensitive places.</strong> Do not publish precise private or protected locations from this tool.</li>
+      </ul>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="ethics-ack">Understood</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../vendor/wds/wds-origins.js"></script>
+  <script src="../vendor/leaflet/leaflet.js"></script>
+  <script src="../js/sheds-models.js"></script>
+  <script src="../js/sheds-observation-store.js"></script>
+  <script src="../js/sheds-observation-patterns.js"></script>
+  <script src="../js/sheds-todays-search.js"></script>
+  <script src="../js/sheds-session-store.js"></script>
+  <script src="../js/sheds-validation-store.js"></script>
+  <script src="../js/sheds-biological-model.js"></script>
+  <script src="../js/sheds-timing.js"></script>
+  <script src="../js/sheds-habitat.js"></script>
+  <script src="../js/sheds-searchability.js"></script>
+  <script src="../js/sheds-confidence.js"></script>
+  <script src="../js/sheds-model-presets.js"></script>
+  <script src="../js/sheds-likelihood-model.js"></script>
+  <script src="../js/sheds-search-planner.js"></script>
+  <script src="../js/sheds-search-area.js"></script>
+  <script src="../js/sheds-search-area-store.js"></script>
+  <script src="../js/sheds-gis-pack.js"></script>
+  <script src="../js/sheds-habitat-gis.js"></script>
+  <script src="../js/sheds-sgl-overlay.js"></script>
+  <script src="../js/sheds-field-plan.js"></script>
+  <script src="../js/sheds-field-ui.js"></script>
+  <script src="../js/sheds-ux-polish.js"></script>
+  <script src="../js/sheds-heat-layer.js"></script>
+  <script src="../js/sheds-tile-provider.js"></script>
+  <script src="../js/sheds-map-field-tools.js"></script>
+  <script src="../js/sheds-inspect-intel.js"></script>
+  <script src="../js/sheds-import-json.js"></script>
+  <script src="../js/sheds-map-app.js"></script>
+</body>
+</html>

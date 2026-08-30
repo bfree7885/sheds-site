@@ -1,0 +1,24 @@
+{
+  "name": "Sheds",
+  "eyebrow": "Wildlife sign & seasonality",
+  "mission": "A calm place for antler shed hunting — species knowledge, private finds, and seasonal timing without trophy culture.",
+  "status": "foundation",
+  "statusLabel": "Foundation",
+  "portfolioStatus": "foundation",
+  "portfolioNote": "Wildlife sign and seasonality for careful hunters and naturalists — no trophy culture.",
+  "strategicRole": "Help people read sign, learn cervid ecology, and keep find locations private.",
+  "learnToday": [
+    "Why deer drop antlers in late winter — nutrition, hormones, and terrain",
+    "Reading south-facing slopes and bedding cover without disturbing wildlife",
+    "Ethics: empty-handed miles still teach tracks, browse, rubs, and bedding sign",
+    "Keep exact find locations private"
+  ],
+  "comingSoon": [],
+  "preview": {
+    "title": "The quiet search",
+    "placeholderLabel": "Trail sign",
+    "placeholderHint": "Slope · bedding · browse line · track",
+    "description": "Patience as a field skill. Sheds is for people who walk carefully and keep finds private."
+  },
+  "homeLink": "../../"
+}

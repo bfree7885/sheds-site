@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /
+
+# Phase 3A github.io preview. Do not index until shedhunting.org DNS is attached.

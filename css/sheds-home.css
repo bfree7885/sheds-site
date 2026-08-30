@@ -1,0 +1,195 @@
+/**
+ * Sheds overview — southwest field station on shared Rebuild foundation.
+ * Accents: burnt orange / gold / brown from locked Waypoint palette.
+ */
+
+html[data-product="shed-hunting"],
+.was-shell[data-product="shed-hunting"] {
+  --sheds-ink: var(--wds-text, var(--waypoint-bone, #f0e1c3));
+  --sheds-muted: var(--wds-text-secondary, var(--waypoint-tan, #bfa98c));
+  --sheds-gold: var(--wp-accent, var(--waypoint-orange, #d46a3a));
+  --sheds-orange: var(--wp-warm, var(--wp-sage, #73806a));
+  --sheds-bark: var(--waypoint-brown, #6b4937);
+  --sheds-slate: var(--waypoint-tan, #bfa98c);
+  background: var(--wp-bg, var(--wds-bg, #181513));
+  color: var(--sheds-ink);
+  font-family: var(--wp-font-body, var(--wds-font-body, system-ui, sans-serif));
+}
+
+.was-shell[data-product="shed-hunting"] .was-global {
+  background: var(--wds-topbar-bg, color-mix(in srgb, var(--wp-bg, #181513) 94%, transparent));
+  border-bottom-color: var(--wds-border-subtle, rgba(191, 169, 140, 0.12));
+  backdrop-filter: blur(10px);
+}
+
+.was-shell[data-product="shed-hunting"] .was-local a[aria-current="page"],
+.was-shell[data-product="shed-hunting"] .was-local a.is-current {
+  color: var(--sheds-gold);
+}
+
+.sheds-page {
+  max-width: 42rem;
+}
+
+.xp-stage {
+  position: relative;
+  margin: 0 0 2.25rem;
+  padding: clamp(1.75rem, 5vw, 2.75rem) clamp(1.25rem, 4vw, 2rem);
+  border-radius: 1.15rem;
+  overflow: hidden;
+  isolation: isolate;
+  background-size: cover;
+  background-position: center;
+}
+
+.xp-stage--forest {
+  background-color: var(--wds-elevated, #251c20);
+  background-image:
+    linear-gradient(165deg, rgba(24, 21, 19, 0.5), rgba(24, 21, 19, 0.78)),
+    radial-gradient(120% 90% at 10% 0%, color-mix(in srgb, var(--sheds-gold) 16%, transparent), transparent 55%);
+  border: 1px solid var(--wds-border-subtle, rgba(155, 143, 217, 0.1));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 8px 28px rgba(4, 8, 18, 0.35);
+}
+
+/* Readable veil when identity mount sets a real photo background */
+.xp-stage--forest::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(165deg, rgba(24, 21, 19, 0.4), rgba(24, 21, 19, 0.74)),
+    radial-gradient(120% 90% at 10% 0%, color-mix(in srgb, var(--sheds-orange) 16%, transparent), transparent 55%);
+}
+
+.xp-stage--forest > * {
+  position: relative;
+  z-index: 1;
+}
+
+.xp-stage__credit {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--sheds-ink) 45%, transparent);
+}
+
+.xp-stage__eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sheds-ink) 55%, transparent);
+}
+
+.xp-stage__title {
+  margin: 0 0 0.65rem;
+  font-family: var(--wds-font-display, Georgia, serif);
+  font-weight: 400;
+  font-size: clamp(1.85rem, 4vw, 2.35rem);
+  line-height: 1.15;
+  color: var(--sheds-ink);
+}
+
+.xp-stage__lead {
+  margin: 0 0 1.25rem;
+  max-width: 34rem;
+  line-height: 1.55;
+  color: var(--sheds-muted);
+}
+
+.xp-stage__cta {
+  margin: 0;
+}
+
+.xp-stage__cta .wds-btn--primary {
+  background: color-mix(in srgb, var(--sheds-gold) 88%, #000);
+  color: var(--wds-on-accent, #080f1c);
+  border-color: color-mix(in srgb, var(--sheds-gold) 60%, transparent);
+}
+
+.xp-secondary {
+  margin: 0 0 2rem;
+}
+
+.xp-secondary__title,
+.xp-later__title {
+  margin: 0 0 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--wds-text-secondary, rgba(238, 242, 246, 0.5));
+}
+
+.xp-secondary__list,
+.xp-later__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.xp-secondary__list li + li {
+  margin-top: 0.35rem;
+}
+
+.xp-secondary__list a {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--wds-border-subtle, rgba(255, 255, 255, 0.08));
+  text-decoration: none;
+  color: inherit;
+}
+
+.xp-secondary__list a:hover,
+.xp-secondary__list a:focus-visible {
+  color: var(--sheds-gold);
+  outline: none;
+}
+
+.xp-secondary__list strong {
+  font-family: var(--wds-font-display, Georgia, serif);
+  font-weight: 400;
+  font-size: 1.2rem;
+}
+
+.xp-secondary__list span {
+  font-size: 0.92rem;
+  color: var(--wds-text-secondary, rgba(238, 242, 246, 0.65));
+}
+
+.xp-later {
+  margin: 1.5rem 0 2rem;
+  padding-top: 0.5rem;
+}
+
+.xp-later__list li {
+  padding: 0.4rem 0;
+  color: var(--wds-text-secondary, rgba(238, 242, 246, 0.65));
+  font-size: 0.95rem;
+}
+
+.xp-later__note {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--wds-text-secondary, rgba(238, 242, 246, 0.5));
+}
+
+.sheds-page .wds-take {
+  margin: 0 0 1.75rem;
+  border-left-color: color-mix(in srgb, var(--sheds-orange) 55%, transparent);
+}
+
+/* Sage (~4.4:1 on charcoal) is a field accent, not body copy. Shared
+   `a { color: var(--wds-warm) }` would paint these source links sage. */
+.sheds-page .wds-take__sources a {
+  color: var(--sheds-gold, var(--wp-accent, #d46a3a));
+}
+
+.sheds-workflows:empty {
+  display: none;
+}

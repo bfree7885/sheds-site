@@ -1,0 +1,119 @@
+/**
+ * Shed Hunting dedicated-host chrome (Phase 2 template).
+ * Focused product shell — not a copy of Waypoint Studio navigation.
+ * Tokens fall back so this sheet does not require the full wds.css bundle.
+ */
+
+.sheds-host {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--wp-bg, var(--wds-bg, #181513));
+  color: var(--wds-text, #f0e1c3);
+  font-family: "Source Sans 3", system-ui, sans-serif;
+}
+
+.sheds-host-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 400;
+  padding: 0.75rem 1rem;
+  background: #1f1a26;
+  color: #e4eaf4;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.sheds-host-skip:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+.sheds-host-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid rgba(191, 169, 140, 0.14);
+  background: color-mix(in srgb, var(--wp-bg, #181513) 94%, transparent);
+}
+
+.sheds-host-brand {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sheds-host-brand__name {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.sheds-host-brand__powered {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 62%, transparent);
+}
+
+.sheds-host-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  font-size: 0.92rem;
+}
+
+.sheds-host-nav a {
+  color: var(--wp-clay-bright, #c47a72);
+  text-decoration: none;
+}
+
+.sheds-host-nav a:hover,
+.sheds-host-nav a:focus-visible {
+  text-decoration: underline;
+}
+
+.sheds-host-main {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.15rem 3rem;
+}
+
+.sheds-host-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  background: var(--wp-clay, #a85d52);
+  color: #fff8f0;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.sheds-host-btn:hover,
+.sheds-host-btn:focus-visible {
+  filter: brightness(1.08);
+}
+
+.sheds-host-foot {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(191, 169, 140, 0.14);
+  font-size: 0.88rem;
+  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 70%, transparent);
+}
+
+.sheds-host-foot a {
+  color: var(--wp-clay-bright, #c47a72);
+}
+
+@media (max-width: 40rem) {
+  .sheds-host-bar {
+    align-items: flex-start;
+  }
+}

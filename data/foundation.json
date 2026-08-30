@@ -1,0 +1,74 @@
+{
+  "productId": "sheds",
+  "title": "Sheds",
+  "eyebrow": "Waypoint Studio \u00b7 Sheds \u00b7 Flagship",
+  "status": "flagship",
+  "lead": "Map-first shed hunting \u2014 species knowledge, private finds, GPS field workflow, and seasonal timing without trophy culture.",
+  "mission": "For hunters and naturalists who want to read sign, learn cervid ecology, and keep find locations private.",
+  "principles": [
+    "No leaderboards or find rankings",
+    "Exact find coordinates stay private",
+    "Support for deer, elk, moose, and other antler-shedding species",
+    "Empty-handed miles still count as useful field time"
+  ],
+  "modules": [
+    {
+      "title": "Field map (whitetail)",
+      "status": "foundation",
+      "description": "Interactive topographic map with private observations and relative search-priority guidance \u2014 never a map of antlers."
+    },
+    {
+      "title": "Species browser",
+      "status": "foundation",
+      "description": "Shed timing, habitat notes, and regional context for the animals you follow."
+    },
+    {
+      "title": "Personal finds",
+      "status": "foundation",
+      "description": "Private find records with notes and location privacy you control. Photos are not attached in the field map yet."
+    },
+    {
+      "title": "Seasonal forecast",
+      "status": "planned",
+      "description": "Weather, snow, and timing signals that help you choose when to walk."
+    },
+    {
+      "title": "Regulations guidance",
+      "status": "planned",
+      "description": "Clear jurisdiction notes with sources you can check."
+    },
+    {
+      "title": "Trail camera notes",
+      "status": "planned",
+      "description": "Link camera evidence to your private finds when you want context."
+    }
+  ],
+  "routes": [
+    {
+      "path": "./",
+      "label": "Sheds home",
+      "ready": true
+    },
+    {
+      "path": "map/",
+      "label": "Field map",
+      "ready": true
+    },
+    {
+      "path": "species/",
+      "label": "Species browser",
+      "ready": false
+    },
+    {
+      "path": "finds/",
+      "label": "Personal finds",
+      "ready": false
+    },
+    {
+      "path": "forecast/",
+      "label": "Seasonal forecast",
+      "ready": false
+    }
+  ],
+  "dataModel": "Your observations and notes stay on this device. Share only what you choose \u2014 nothing is posted by default."
+}

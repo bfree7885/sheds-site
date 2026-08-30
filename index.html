@@ -1,170 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-product="shed-hunting" data-shed-host="1">
 <head>
-<meta charset="utf-8">
-<title>Sheds | Terrain Intelligence for Shed Hunting</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="styles.css">
-
-<style>
-
-body{
-background:#0b2433;
-color:#e6edf3;
-font-family:Arial, Helvetica, sans-serif;
-margin:0;
-padding:40px;
-max-width:1100px;
-}
-
-header{
-margin-bottom:30px;
-}
-
-.logo{
-width:120px;
-border-radius:6px;
-}
-
-nav{
-margin-top:20px;
-font-size:18px;
-}
-
-nav a{
-color:#9adf3f;
-text-decoration:none;
-font-weight:600;
-}
-
-nav a:hover{
-text-decoration:underline;
-}
-
-.nav-divider{
-margin:0 12px;
-color:#6a8f3a;
-}
-
-.section{
-margin-top:50px;
-}
-
-.preview-grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-gap:25px;
-margin-top:25px;
-}
-
-.preview-card img{
-width:100%;
-border-radius:6px;
-}
-
-.preview-card p{
-margin-top:10px;
-line-height:1.6;
-}
-
-.goal-box{
-background:#102f43;
-padding:25px;
-border-radius:8px;
-line-height:1.6;
-}
-
-h2{
-margin-bottom:15px;
-}
-
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Shed Hunting — should I go shed hunting today? Today’s hunt and search conditions. The map is where to look. Likelihood, not a find prediction. Powered by Waypoint.">
+  <title>Shed Hunting — Today’s hunt · Powered by Waypoint</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/wds/wds-experience-v2.css">
+  <link rel="stylesheet" href="css/sheds-home.css">
+  <link rel="stylesheet" href="css/sheds-host.css">
 </head>
+<body class="sheds-host">
+  <a class="sheds-host-skip" href="#main">Skip to content</a>
+  <header class="sheds-host-bar">
+    <a class="sheds-host-brand" href="./">
+      <span class="sheds-host-brand__name">ShedHunting.org</span>
+      <span class="sheds-host-brand__powered">Powered by Waypoint</span>
+    </a>
+    <nav class="sheds-host-nav" aria-label="Shed Hunting">
+      <a data-powered-by-waypoint href="https://waypointstudio.org/">Powered by Waypoint</a>
+      <a data-studio-path="/apps/dashboard/" href="https://waypointstudio.org/apps/dashboard/">Dashboard</a>
+      <a data-studio-path="/support.html" href="https://waypointstudio.org/support.html">Support</a>
+      <a data-studio-path="/about.html" href="https://waypointstudio.org/about.html">About</a>
+      <a data-studio-path="/privacy.html" href="https://waypointstudio.org/privacy.html">Privacy</a>
+      <a data-studio-path="/terms.html" href="https://waypointstudio.org/terms.html">Terms</a>
+      <a data-studio-path="/contact.html" href="https://waypointstudio.org/contact.html">Contact</a>
+    </nav>
+  </header>
+  <main id="main" class="sheds-host-main sheds-page">
+    <header class="xp-stage xp-stage--forest" data-identity-stage="sheds" aria-label="Today’s hunt">
+      <p class="xp-stage__eyebrow">ShedHunting.org · Powered by Waypoint</p>
+      <h1 class="xp-stage__title">Should I go shed hunting today?</h1>
+      <p class="xp-stage__lead">
+        Today’s hunt is current shed-hunting intelligence: search conditions, season, and whether the day favors going. It is decision support — never a claim that an antler is waiting.
+      </p>
+      <p class="xp-stage__cta">
+        <a class="sheds-host-btn" href="map/">Open Map</a>
+      </p>
+    </header>
 
-<body>
+    <section class="xp-secondary" aria-labelledby="sheds-next">
+      <h2 id="sheds-next" class="xp-secondary__title">Then</h2>
+      <ul class="xp-secondary__list">
+        <li>
+          <a href="map/"><strong>Where should I look?</strong><span>Open the field map for habitat interest, likelihood, and your notes — not a find prediction</span></a>
+        </li>
+        <li>
+          <a data-studio-path="/apps/dashboard/" href="https://waypointstudio.org/apps/dashboard/"><strong>Today’s conditions</strong><span>How is the day before you leave?</span></a>
+        </li>
+        <li>
+          <a data-studio-path="/articles/" href="https://waypointstudio.org/articles/"><strong>Learn</strong><span>Quiet field reading beside the hunt</span></a>
+        </li>
+      </ul>
+    </section>
 
-<header>
-<img src="sheds-logo.png" class="logo" alt="Sheds Logo">
+    <aside class="wds-take">
+      <p class="wds-take__body">Open the map when you are ready to walk. Heat and habitat describe likelihood and opportunity — they never guarantee a find or know that a deer is there.</p>
+      <p class="wds-take__meta">Interpretation · uncertainty labeled · privacy-first</p>
+      <p class="wds-take__sources"><a href="map/">Open Map</a> · <a data-studio-path="/articles/" href="https://waypointstudio.org/articles/">Learn</a></p>
+    </aside>
 
-<h1>Sheds</h1>
+    <section class="xp-later" aria-labelledby="sheds-later">
+      <h2 id="sheds-later" class="xp-later__title">Later</h2>
+      <ul class="xp-later__list">
+        <li>Log discoveries — private finds you control</li>
+        <li>Review your season — when the days accumulate</li>
+      </ul>
+      <p class="xp-later__note">Exact find coordinates stay private. No leaderboards.</p>
+    </section>
 
-<p><strong>Terrain intelligence and wildlife observation for shed hunting.</strong></p>
-
-<p>
-Sheds is an informational and mapping platform that helps people understand
-where deer drop their antlers and why. Deer shed their antlers every winter
-as part of their natural cycle. We combine wildlife biology, terrain science,
-and field observations to support responsible shed hunting and research.
-</p>
-
-<h2>Mission</h2>
-<p>
-We connect terrain science with real-world deer behavior so shed hunters can
-make better decisions. Our goals are to teach ecology, support responsible
-hunting, and build a research-grade dataset for wildlife scientists.
-</p>
-
-<nav>
-<a href="field-guide/index.html">Field Guide</a>
-<span class="nav-divider">→</span>
-<a href="briefs/index.html">Field Notes</a>
-<span class="nav-divider">→</span>
-<a href="fieldview.html">Field View</a> <span style="font-size:0.85em;color:#6a8f3a;">(beta)</span>
-</nav>
-
-</header>
-
-
-<section class="section">
-
-<h2>Project Goals</h2>
-
-<div class="goal-box">
-
-<ul>
-<li>Teach the ecological science behind shed hunting</li>
-<li>Build a terrain-based navigation platform</li>
-<li>Collect structured environmental field data</li>
-<li>Improve terrain-based shed probability heatmaps</li>
-<li>Create a research-grade dataset on shed distribution</li>
-<li>Publish educational material and a future book based on findings</li>
-</ul>
-
-</div>
-
-</section>
-
-
-<section class="section">
-
-<h2>Heatmap Preview Layers</h2>
-
-<div class="preview-grid">
-
-<div class="preview-card">
-<img src="preview_education.jpg" alt="Education Preview">
-<p><strong>Education Layer</strong><br>
-Explains seasonal behavior and wildlife movement patterns.
-</p>
-</div>
-
-<div class="preview-card">
-<img src="preview_landstatus.jpg" alt="Land Status Preview">
-<p><strong>Land Status Layer</strong><br>
-Encourages responsible access and land awareness.
-</p>
-</div>
-
-<div class="preview-card">
-<img src="preview_seasonal.jpg" alt="Seasonal Preview">
-<p><strong>Seasonal Timing Layer</strong><br>
-Highlights seasonal wildlife sensitivity patterns.
-</p>
-</div>
-
-</div>
-
-</section>
-
+    <footer class="sheds-host-foot">
+      <p>Private field notes stay on this device. Exact find coordinates stay private.
+    </footer>
+  </main>
+  <script src="vendor/wds/wds-origins.js"></script>
 </body>
 </html>

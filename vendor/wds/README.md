@@ -3,9 +3,10 @@
 This directory is a **small, build-time copy** of the Waypoint design-system pieces
 the Shed Hunting field map (and the dedicated-host artifact) need.
 
-It exists so Shed Hunting can run from `/apps/shed-hunting/map/` today and from
-`https://shedhunting.org/map/` later without `../../../design-system/...` path
-traversal, and without a runtime dependency on `waypointstudio.org` CSS.
+It exists so Shed Hunting can run from `https://shedhunting.org/map/` (and, for
+local/export work, `/apps/shed-hunting/map/?local=1`) without
+`../../../design-system/...` path traversal, and without a runtime dependency
+on `waypointstudio.org` CSS.
 
 Do **not** copy the entire design system here.
 

@@ -2,8 +2,8 @@
  * Waypoint Studio / Shed Hunting origin helpers.
  * Source of truth: design-system/ecosystem/origin-config.json (keep in sync).
  *
- * Phase 2: shedDedicatedHostEnabled is false. Public Shed Hunting hrefs stay
- * on waypointstudio.org. Do not emit https://shedhunting.org links until Phase 3.
+ * Phase 3C: shedDedicatedHostEnabled is true. Public Shed Hunting hrefs use
+ * https://shedhunting.org. Studio remains https://waypointstudio.org.
  */
 (function (global) {
   "use strict";
@@ -12,7 +12,7 @@
     version: "1.0.0",
     studioOrigin: "https://waypointstudio.org",
     shedOrigin: "https://shedhunting.org",
-    shedDedicatedHostEnabled: false,
+    shedDedicatedHostEnabled: true,
     shedHostnames: ["shedhunting.org", "www.shedhunting.org"],
     studioPaths: {
       home: "/",

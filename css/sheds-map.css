@@ -2134,6 +2134,10 @@ html.sheds-sheet-open .leaflet-control-attribution {
   -webkit-backdrop-filter: var(--sheds-blur);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
+
+.sheds-session-strip[hidden] {
+  display: none !important;
+}
 .sheds-session-strip__row {
   display: flex;
   align-items: baseline;

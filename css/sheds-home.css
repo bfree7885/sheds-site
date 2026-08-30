@@ -100,6 +100,10 @@ html[data-product="shed-hunting"],
   color: var(--sheds-muted);
 }
 
+.xp-stage #todays-hunt {
+  max-width: 34rem;
+}
+
 .xp-stage__cta {
   margin: 0;
 }

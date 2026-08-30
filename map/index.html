@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="../vendor/wds/wds-experience-v2.css">
   <link rel="stylesheet" href="../css/sheds-map.css">
+  <link rel="stylesheet" href="../css/sheds-today-hunt.css">
 </head>
 <body>
   <a class="sheds-skip" href="#sheds-map">Skip to map</a>
@@ -221,6 +222,9 @@
           <span class="sheds-suggest__chev" aria-hidden="true"></span>
         </button>
         <div class="sheds-suggest__details" id="plan-details" hidden>
+          <div id="today-hunt"></div>
+          <details class="sheds-plan__why-wrap" id="hunt-more-detail">
+            <summary>More detail</summary>
           <div class="sheds-trip" id="sheds-channels" aria-label="Field guidance">
             <section class="sheds-trip__block" data-trip="when">
               <h3 class="sheds-trip__k">When</h3>
@@ -263,8 +267,6 @@
           </div>
           <p class="sheds-plan__body" id="plan-body">Locate yourself, or pan to your land and tap to set a Search Area.</p>
           <p class="sheds-plan__meta" id="plan-meta"></p>
-          <details class="sheds-plan__why-wrap">
-            <summary>More detail</summary>
             <ul class="sheds-today__signals" id="today-signals"></ul>
             <p class="sheds-plan__why" id="plan-why"></p>
             <p class="sheds-today__uncertain" id="today-uncertain"></p>
@@ -824,6 +826,8 @@
   <script src="../js/sheds-timing.js"></script>
   <script src="../js/sheds-habitat.js"></script>
   <script src="../js/sheds-searchability.js"></script>
+  <script src="../js/sheds-weather.js"></script>
+  <script src="../js/sheds-today-hunt.js"></script>
   <script src="../js/sheds-confidence.js"></script>
   <script src="../js/sheds-model-presets.js"></script>
   <script src="../js/sheds-likelihood-model.js"></script>

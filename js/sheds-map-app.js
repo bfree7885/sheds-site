@@ -18,6 +18,8 @@
   var Timing = window.WaypointShedsTiming;
   var Habitat = window.WaypointShedsHabitat;
   var Searchability = window.WaypointShedsSearchability;
+  var Weather = window.WaypointShedsWeather;
+  var TodayHunt = window.WaypointShedsTodayHunt;
   var Confidence = window.WaypointShedsConfidence;
   var SearchArea = window.WaypointShedsSearchArea;
   var GisPack = window.WaypointShedsGisPack;
@@ -383,6 +385,73 @@
     if (state.userLatLng || state.locationStatus === "available") return "ready";
     if (state.locationStatus === "idle" || state.locationStatus === "neutral") return "loading";
     return state.userLatLng ? "ready" : "unavailable";
+  }
+
+  /**
+   * Place for Today's Hunt. GPS, saved Search/map, or a zoomed map center.
+   * Midwest overview (zoom 6) is not treated as the hunter's location.
+   */
+  function locationForHunt() {
+    if (state.userLatLng && isFinite(state.userLatLng.lat) && isFinite(state.userLatLng.lng)) {
+      return { lat: state.userLatLng.lat, lng: state.userLatLng.lng, source: "gps" };
+    }
+    if (state.searchLocation && isFinite(state.searchLocation.lat) && isFinite(state.searchLocation.lng)) {
+      return {
+        lat: state.searchLocation.lat,
+        lng: state.searchLocation.lng,
+        source: "saved-area"
+      };
+    }
+    if (Store && typeof Store.loadMapView === "function") {
+      var saved = Store.loadMapView();
+      if (saved && isFinite(saved.lat) && isFinite(saved.lng)) {
+        return { lat: saved.lat, lng: saved.lng, source: "saved-view" };
+      }
+    }
+    if (AreaStore && typeof AreaStore.list === "function") {
+      var areas = AreaStore.list();
+      if (areas && areas[0] && areas[0].center &&
+          isFinite(areas[0].center.lat) && isFinite(areas[0].center.lng)) {
+        return { lat: areas[0].center.lat, lng: areas[0].center.lng, source: "saved-area" };
+      }
+    }
+    if (map && typeof map.getZoom === "function" && map.getZoom() >= 10) {
+      var c = map.getCenter();
+      if (c && isFinite(c.lat) && isFinite(c.lng)) {
+        return { lat: c.lat, lng: c.lng, source: "map-center" };
+      }
+    }
+    return null;
+  }
+
+  function refreshTodayHunt(plan) {
+    if (!TodayHunt) return null;
+    var loc = locationForHunt();
+    var wx = state.offlineForced ? null : state.weather;
+    var weatherStatus = state.offlineForced ? "unavailable"
+      : (state.weatherStatus === "loading" ? "loading"
+        : (wx ? "ready" : state.weatherStatus || "unavailable"));
+    if (!loc) {
+      wx = null;
+      if (weatherStatus === "ready") weatherStatus = "unavailable";
+    }
+    var hunt = TodayHunt.compose({
+      now: new Date(),
+      location: loc,
+      weather: wx,
+      weatherStatus: weatherStatus,
+      patterns: Patterns ? Patterns.aggregatePatterns(Store.list()) : null,
+      plan: plan || state.lastPlan,
+      prefs: state.prefs || {}
+    });
+    state.lastHunt = hunt;
+    return hunt;
+  }
+
+  function renderTodayHunt(hunt) {
+    var el = $("today-hunt");
+    if (!el || !TodayHunt) return;
+    TodayHunt.fillHuntRoot(el, hunt, { includeQuestion: false });
   }
 
   function currentHeatFilters() {
@@ -1582,79 +1651,15 @@
   function fetchWeatherSoft(lat, lng) {
     if (!isFinite(lat) || !isFinite(lng)) return Promise.resolve(null);
     state.weatherStatus = "loading";
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat.toFixed(4) +
-      "&longitude=" + lng.toFixed(4) +
-      "&current=temperature_2m,wind_speed_10m,surface_pressure,precipitation" +
-      "&hourly=temperature_2m,wind_speed_10m,precipitation,surface_pressure" +
-      "&daily=snowfall_sum,sunrise,sunset,precipitation_sum" +
-      "&timezone=auto&forecast_days=3&past_days=1";
-    return fetch(url, { credentials: "omit" }).then(function (res) {
-      if (!res.ok) throw new Error("wx");
-      return res.json();
-    }).then(function (data) {
-      var snow = 0;
-      if (data.daily && data.daily.snowfall_sum) {
-        snow = data.daily.snowfall_sum.reduce(function (a, b) { return a + (b || 0); }, 0);
+    if (!Weather || typeof Weather.fetchForecast !== "function") {
+      state.weatherStatus = "unavailable";
+      return Promise.resolve(null);
+    }
+    return Weather.fetchForecast(lat, lng).then(function (pkg) {
+      if (!pkg || pkg.ready === false) {
+        state.weatherStatus = "unavailable";
+        return null;
       }
-      var influence = 1;
-      if (snow > 25) influence = 0.7;
-      else if (snow > 8) influence = 0.88;
-      else if (snow > 0.5) influence = 1.05;
-      var tempC = data.current && typeof data.current.temperature_2m === "number"
-        ? data.current.temperature_2m : null;
-      var windSpeedMs = data.current && typeof data.current.wind_speed_10m === "number"
-        ? data.current.wind_speed_10m : null;
-      var pressureHpa = data.current && typeof data.current.surface_pressure === "number"
-        ? data.current.surface_pressure : null;
-      var precipMm24h = null;
-      if (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum.length) {
-        // past_days=1 puts yesterday first; sum recent ~24–48h honestly as available
-        var sums = data.daily.precipitation_sum;
-        precipMm24h = Number(sums[sums.length > 1 ? 1 : 0] || 0);
-        if (sums.length > 1) precipMm24h = Number(sums[0] || 0) + Number(sums[1] || 0);
-      }
-      var pressureTrend = null;
-      if (data.hourly && data.hourly.surface_pressure && data.hourly.surface_pressure.length >= 6) {
-        var arr = data.hourly.surface_pressure.filter(function (v) { return typeof v === "number"; });
-        if (arr.length >= 6) {
-          var early = arr[Math.max(0, arr.length - 12)];
-          var late = arr[arr.length - 1];
-          var delta = late - early;
-          if (delta <= -1.5) pressureTrend = "falling";
-          else if (delta >= 1.5) pressureTrend = "rising";
-          else pressureTrend = "steady";
-        }
-      }
-      var sunriseIso = data.daily && data.daily.sunrise ? data.daily.sunrise[data.daily.sunrise.length > 1 ? 1 : 0] : null;
-      var sunsetIso = data.daily && data.daily.sunset ? data.daily.sunset[data.daily.sunset.length > 1 ? 1 : 0] : null;
-      // With past_days=1, index 1 is typically "today"
-      if (data.daily && data.daily.time && data.daily.time.length) {
-        var todayStr = new Date().toISOString().slice(0, 10);
-        var ix = data.daily.time.indexOf(todayStr);
-        if (ix < 0 && data.daily.time.length > 1) ix = 1;
-        if (ix < 0) ix = 0;
-        sunriseIso = data.daily.sunrise && data.daily.sunrise[ix];
-        sunsetIso = data.daily.sunset && data.daily.sunset[ix];
-      }
-      var pkg = {
-        snowInfluence: influence,
-        snowMm: snow,
-        tempC: tempC,
-        windSpeedMs: windSpeedMs,
-        pressureHpa: pressureHpa,
-        pressureTrend: pressureTrend,
-        precipMm24h: precipMm24h,
-        sunriseIso: sunriseIso || null,
-        sunsetIso: sunsetIso || null,
-        sunriseLocal: formatLocalClock(sunriseIso),
-        sunsetLocal: formatLocalClock(sunsetIso),
-        sunriseHour: hourFromIso(sunriseIso),
-        sunsetHour: hourFromIso(sunsetIso),
-        utcOffsetMinutes: typeof data.utc_offset_seconds === "number"
-          ? data.utc_offset_seconds / 60 : null,
-        source: "open-meteo",
-        fetchedAt: new Date().toISOString()
-      };
       state.weatherStatus = "ready";
       return pkg;
     }).catch(function () {
@@ -2202,6 +2207,8 @@
     var stats = $("plan-stats");
     var channels = evaluateChannels(plan);
     var brief = refreshTodaysSearch(plan);
+    var hunt = refreshTodayHunt(plan);
+    renderTodayHunt(hunt);
     var statusEl = $("today-status");
     var uncertainEl = $("today-uncertain");
     var whyWrap = document.querySelector(".sheds-plan__why-wrap");
@@ -2243,12 +2250,22 @@
     }
 
     if (els.planTitle) {
-      els.planTitle.textContent = hasSearch
-        ? (timingPlain + " · " + landscapeShort)
-        : "Choose a Search Area";
+      if (hunt && hunt.status === "loading") {
+        els.planTitle.textContent = "Reading today…";
+      } else if (hunt && hunt.rated) {
+        els.planTitle.textContent = hunt.band + " · " + (hunt.season && hunt.season.label ? hunt.season.label : "Season");
+      } else if (hunt && hunt.band) {
+        els.planTitle.textContent = hunt.band;
+      } else if (hasSearch) {
+        els.planTitle.textContent = timingPlain + " · " + landscapeShort;
+      } else {
+        els.planTitle.textContent = "Choose a Search Area";
+      }
     }
     if (glance) {
-      if (!hasSearch) {
+      if (hunt && hunt.today) {
+        glance.textContent = hunt.today;
+      } else if (!hasSearch) {
         glance.textContent = (Ux && Ux.EMPTY.NO_SEARCH) || "Tap the map to choose an area to inspect.";
       } else if (brief && (brief.status === "weather_unavailable" || offline)) {
         glance.textContent = (Ux && Ux.EMPTY.NO_WEATHER) ||
@@ -2262,8 +2279,12 @@
     if (conf) {
       if (state.tracking) {
         conf.textContent = "Search active — End Search when done";
+      } else if (hunt && hunt.status === "need_location") {
+        conf.textContent = "Next: share a location";
+      } else if (hunt && hunt.status === "not_rated") {
+        conf.textContent = "Live conditions unavailable";
       } else if (!hasSearch) {
-        conf.textContent = "Next: set Search Area";
+        conf.textContent = "Next: set Search Area for where to look";
       } else {
         conf.textContent = "Next: Field Plan or Start Search";
       }
@@ -2319,7 +2340,7 @@
     var dir = r.bearingLabel || "";
     var glanceText = [dir, dist].filter(Boolean).join(" · ");
     if (!glanceText) glanceText = r.walkingHint || "Nearby pocket";
-    if (glance) {
+    if (glance && !hunt) {
       var win = brief && brief.timeWindows && brief.timeWindows[0]
         ? brief.timeWindows[0].label + " · "
         : "";
@@ -2366,7 +2387,8 @@
     if (els.planMeta) els.planMeta.textContent = meta.join(" · ");
     els.planCard.setAttribute(
       "aria-label",
-      "Today’s Search: " + (brief && brief.headline ? brief.headline + ". " : "") + glanceText
+      "Today’s Hunt: " + (hunt && hunt.today ? hunt.today + ". " : "") +
+        (brief && brief.headline ? brief.headline + ". " : "") + glanceText
     );
     updateNavMeta();
     syncHeatLegend();

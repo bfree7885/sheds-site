@@ -1,0 +1,179 @@
+/**
+ * Today's Hunt card — overview + map Field Briefing.
+ * Immediate, readable on a phone. Not an analytics dashboard.
+ */
+
+.sheds-hunt {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.sheds-hunt__question {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sheds-ink, #f0e1c3) 55%, transparent);
+}
+
+.sheds-hunt__band {
+  margin: 0 0 0.45rem;
+}
+
+.sheds-hunt__band-label {
+  display: inline-block;
+  max-width: 100%;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.55rem, 8vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--sheds-ink, #f0e1c3);
+}
+
+.sheds-hunt[data-band="Very good"] .sheds-hunt__band-label,
+.sheds-hunt[data-band="Need location"] .sheds-hunt__band-label,
+.sheds-hunt[data-band="Not rated"] .sheds-hunt__band-label {
+  font-size: clamp(1.45rem, 7.2vw, 2.35rem);
+}
+
+.sheds-hunt[data-band="Very good"] .sheds-hunt__band-label {
+  color: color-mix(in srgb, var(--sheds-gold, #d46a3a) 80%, #f0e1c3);
+}
+
+.sheds-hunt[data-band="Good"] .sheds-hunt__band-label {
+  color: var(--sheds-gold, #d46a3a);
+}
+
+.sheds-hunt[data-band="Fair"] .sheds-hunt__band-label {
+  color: var(--sheds-slate, #bfa98c);
+}
+
+.sheds-hunt[data-band="Low"] .sheds-hunt__band-label {
+  color: color-mix(in srgb, var(--sheds-muted, #bfa98c) 85%, #8a6a58);
+}
+
+.sheds-hunt[data-rated="false"] .sheds-hunt__band-label {
+  color: color-mix(in srgb, var(--sheds-muted, #bfa98c) 90%, #c4b49a);
+}
+
+.sheds-hunt__today {
+  margin: 0 0 1.1rem;
+  font-size: clamp(1.02rem, 3.6vw, 1.15rem);
+  line-height: 1.4;
+  color: var(--sheds-ink, #f0e1c3);
+}
+
+.sheds-hunt__block {
+  margin: 0 0 0.85rem;
+}
+
+.sheds-hunt__k {
+  margin: 0 0 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--sheds-ink, #f0e1c3) 55%, transparent);
+}
+
+.sheds-hunt__why {
+  margin: 0;
+  padding-left: 1.1rem;
+  line-height: 1.45;
+}
+
+.sheds-hunt__block p,
+.sheds-hunt__why li {
+  margin: 0;
+  color: var(--sheds-muted, #bfa98c);
+  line-height: 1.45;
+}
+
+.sheds-hunt__why li + li {
+  margin-top: 0.35rem;
+}
+
+.sheds-hunt__season {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--sheds-ink, #f0e1c3);
+}
+
+.sheds-hunt__support,
+.sheds-hunt__disclaimer {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--sheds-muted, #bfa98c) 88%, transparent);
+}
+
+.sheds-hunt-prompt {
+  margin: 0 0 1.25rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(191, 169, 140, 0.18);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--wp-bg, #181513) 70%, #2a2018);
+}
+
+.sheds-hunt-prompt p {
+  margin: 0 0 0.75rem;
+  line-height: 1.45;
+  color: var(--sheds-muted, #bfa98c);
+}
+
+.sheds-hunt-prompt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 0.85rem;
+  align-items: center;
+}
+
+.sheds-hunt-status {
+  margin: 0 0 0.65rem;
+  min-height: 1.2em;
+  font-size: 0.88rem;
+  color: var(--sheds-muted, #bfa98c);
+}
+
+.sheds-host-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(191, 169, 140, 0.35);
+  color: var(--sheds-ink, #f0e1c3);
+}
+
+/* Map briefing: compact hunt card inside the sheet */
+.sheds-suggest__details .sheds-hunt {
+  margin: 0.15rem 0 0.85rem;
+}
+
+.sheds-suggest__details .sheds-hunt__band-label {
+  font-size: 1.7rem;
+}
+
+.sheds-suggest__details .sheds-hunt__today {
+  font-size: 1.02rem;
+  margin-bottom: 0.75rem;
+}
+
+.sheds-suggest__details .sheds-hunt__question {
+  display: none;
+}
+
+@media (max-width: 360px) {
+  .sheds-hunt__today {
+    margin-bottom: 0.75rem;
+  }
+
+  .sheds-hunt__disclaimer {
+    font-size: 0.76rem;
+  }
+
+  .sheds-hunt-prompt {
+    margin-bottom: 0.85rem;
+    padding: 0.75rem 0.85rem;
+  }
+}

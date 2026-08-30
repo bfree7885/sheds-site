@@ -38,6 +38,61 @@
     }
   }
 
+  function hrefWithLocal(href) {
+    var next = String(href || "");
+    var hash = "";
+    var hashAt = next.indexOf("#");
+    if (hashAt >= 0) {
+      hash = next.slice(hashAt);
+      next = next.slice(0, hashAt);
+    }
+    if (/(?:^|[?&])local=1(?:&|$)/.test(next)) return next + hash;
+    next += next.indexOf("?") >= 0 ? "&local=1" : "?local=1";
+    return next + hash;
+  }
+
+  function isHatchNavHref(href) {
+    var path = String(href || "").split("#")[0].split("?")[0];
+    return (
+      path === "map/" ||
+      path === "map" ||
+      path === "./map/" ||
+      path === "./map" ||
+      path === "../" ||
+      path === ".." ||
+      path === "./" ||
+      path === "."
+    );
+  }
+
+  function preserveLocalNav(root) {
+    if (!hasLocalFlag()) return;
+    try {
+      var doc = root || (global.document && global.document);
+      if (!doc || !doc.querySelectorAll) return;
+      var nodes = doc.querySelectorAll("a[href]");
+      for (var i = 0; i < nodes.length; i++) {
+        var href = nodes[i].getAttribute("href") || "";
+        if (!isHatchNavHref(href)) continue;
+        nodes[i].setAttribute("href", hrefWithLocal(href));
+      }
+    } catch (e) {}
+  }
+
+  function schedulePreserveLocalNav() {
+    try {
+      var doc = global.document;
+      if (!doc || !doc.querySelectorAll) return;
+      if (doc.readyState === "loading" && doc.addEventListener) {
+        doc.addEventListener("DOMContentLoaded", function () {
+          preserveLocalNav();
+        });
+      } else {
+        preserveLocalNav();
+      }
+    } catch (e) {}
+  }
+
   function isShedHostDocument() {
     try {
       var el = global.document && global.document.documentElement;
@@ -83,12 +138,16 @@
     } catch (e) {}
   }
 
+  schedulePreserveLocalNav();
+
   global.WaypointShedsCutover = {
     OVERVIEW: OVERVIEW,
     MAP: MAP,
     shouldStay: shouldStay,
     redirectLegacyStudio: redirectLegacyStudio,
     destinationWithLocation: destinationWithLocation,
+    hrefWithLocal: hrefWithLocal,
+    preserveLocalNav: preserveLocalNav,
     showFallback: showFallback
   };
 })(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : this));

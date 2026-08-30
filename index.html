@@ -7,7 +7,7 @@
   <link rel="canonical" href="https://shedhunting.org/">
   <meta property="og:url" content="https://shedhunting.org/">
   <meta property="og:title" content="Shed Hunting — Today’s hunt · Powered by Waypoint">
-  <meta name="description" content="Shed Hunting — should I go shed hunting today? Today’s hunt and search conditions. The map is where to look. Likelihood, not a find prediction. Powered by Waypoint.">
+  <meta name="description" content="Shed Hunting — should I go shed hunting today? Today’s hunt: season, search conditions, and whether the day favors going. The map is where to look. Not a find prediction. Powered by Waypoint.">
   <title>Shed Hunting — Today’s hunt · Powered by Waypoint</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="vendor/wds/wds-experience-v2.css">
   <link rel="stylesheet" href="css/sheds-home.css">
   <link rel="stylesheet" href="css/sheds-host.css">
+  <link rel="stylesheet" href="css/sheds-today-hunt.css">
 </head>
 <body class="sheds-host">
   <a class="sheds-host-skip" href="#main">Skip to content</a>
@@ -37,11 +38,18 @@
     <header class="xp-stage xp-stage--forest" data-identity-stage="sheds" aria-label="Today’s hunt">
       <p class="xp-stage__eyebrow">ShedHunting.org · Powered by Waypoint</p>
       <h1 class="xp-stage__title">Should I go shed hunting today?</h1>
-      <p class="xp-stage__lead">
-        Today’s hunt is current shed-hunting intelligence: search conditions, season, and whether the day favors going. It is decision support — never a claim that an antler is waiting.
-      </p>
+      <p class="sheds-hunt-status" id="hunt-status" role="status" hidden></p>
+      <div id="todays-hunt"></div>
+      <div class="sheds-hunt-prompt" id="hunt-location-prompt" hidden>
+        <p>Share a location or choose an area on the map to get today’s local hunt assessment. Today’s Hunt does not invent a town.</p>
+        <div class="sheds-hunt-prompt__actions">
+          <button type="button" class="sheds-host-btn" id="hunt-use-location">Use my location</button>
+          <a class="sheds-host-btn sheds-host-btn--ghost" href="map/">Open Map</a>
+        </div>
+      </div>
       <p class="xp-stage__cta">
         <a class="sheds-host-btn" href="map/">Open Map</a>
+        <span class="xp-stage__cta-note">Where should I look?</span>
       </p>
     </header>
 
@@ -50,9 +58,6 @@
       <ul class="xp-secondary__list">
         <li>
           <a href="map/"><strong>Where should I look?</strong><span>Open the field map for habitat interest, likelihood, and your notes — not a find prediction</span></a>
-        </li>
-        <li>
-          <a data-studio-path="/apps/dashboard/" href="https://waypointstudio.org/apps/dashboard/"><strong>Today’s conditions</strong><span>How is the day before you leave?</span></a>
         </li>
         <li>
           <a data-studio-path="/articles/" href="https://waypointstudio.org/articles/"><strong>Learn</strong><span>Quiet field reading beside the hunt</span></a>
@@ -80,5 +85,14 @@
     </footer>
   </main>
   <script src="vendor/wds/wds-origins.js"></script>
+  <script src="js/sheds-biological-model.js"></script>
+  <script src="js/sheds-timing.js"></script>
+  <script src="js/sheds-todays-search.js"></script>
+  <script src="js/sheds-searchability.js"></script>
+  <script src="js/sheds-weather.js"></script>
+  <script src="js/sheds-today-hunt.js"></script>
+  <script src="js/sheds-observation-store.js"></script>
+  <script src="js/sheds-search-area-store.js"></script>
+  <script src="js/sheds-today-hunt-overview.js"></script>
 </body>
 </html>

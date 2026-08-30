@@ -7,6 +7,7 @@
 .sheds-host {
   min-height: 100vh;
   margin: 0;
+  overflow-x: clip;
   background: var(--wp-bg, var(--wds-bg, #181513));
   color: var(--wds-text, #f0e1c3);
   font-family: "Source Sans 3", system-ui, sans-serif;
@@ -80,6 +81,7 @@
   max-width: 42rem;
   margin: 0 auto;
   padding: 1.25rem 1.15rem 3rem;
+  min-width: 0;
 }
 
 .sheds-host-btn {
@@ -100,6 +102,30 @@
   filter: brightness(1.08);
 }
 
+button.sheds-host-btn {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+}
+
+.sheds-host-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(191, 169, 140, 0.35);
+  color: var(--wds-text, #f0e1c3);
+}
+
+.xp-stage__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+}
+
+.xp-stage__cta-note {
+  font-size: 0.88rem;
+  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 62%, transparent);
+}
+
 .sheds-host-foot {
   margin-top: 2.5rem;
   padding-top: 1.25rem;
@@ -115,5 +141,38 @@
 @media (max-width: 40rem) {
   .sheds-host-bar {
     align-items: flex-start;
+  }
+
+  .sheds-host-nav {
+    width: 100%;
+    font-size: 0.82rem;
+  }
+
+  .sheds-host-main {
+    padding: 1rem 0.9rem 2.5rem;
+  }
+}
+
+/* Hide the duplicate Open Map under the location prompt. */
+#hunt-location-prompt:not([hidden]) ~ .xp-stage__cta {
+  display: none;
+}
+
+@media (max-width: 360px) {
+  .sheds-host-brand__powered {
+    display: none;
+  }
+
+  .sheds-host-nav {
+    font-size: 0.74rem;
+    gap: 0.35rem 0.55rem;
+  }
+
+  .xp-stage {
+    padding: 0.9rem 0.85rem 1.25rem;
+  }
+
+  .xp-stage__eyebrow {
+    display: none;
   }
 }

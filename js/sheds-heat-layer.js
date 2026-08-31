@@ -54,12 +54,20 @@
       if (band === "stronger") return "rgba(72, 140, 78, " + 0.34 * aMul + ")";
       if (band === "some") return "rgba(168, 148, 72, " + 0.26 * aMul + ")";
       if (band === "limited") return "rgba(78, 110, 118, " + 0.16 * aMul + ")";
+      if (band === "higher") return "rgba(52, 118, 74, " + 0.30 * aMul + ")";
+      if (band === "moderate") return "rgba(186, 148, 58, " + 0.18 * aMul + ")";
+      if (band === "lower") return "rgba(92, 98, 90, " + 0.10 * aMul + ")";
       return null;
     },
 
     _isGisMode: function () {
       var grid = this._grid;
       return !!(grid && (grid.renderMode === "gis-bands" || (grid.modelVersion && String(grid.modelVersion).indexOf("habitat-gis") === 0)));
+    },
+
+    _isSearchMode: function () {
+      var grid = this._grid;
+      return !!(grid && grid.renderMode === "search-priority");
     },
 
     _cellAt: function (row, col) {
@@ -101,7 +109,27 @@
       var cellH = (se.y - nw.y) / grid.rows;
       var limited = grid.coverage && grid.coverage.level === "limited";
       var gis = this._isGisMode();
+      var search = this._isSearchMode();
       var i;
+
+      if (search) {
+        for (i = 0; i < grid.cells.length; i++) {
+          var sc = grid.cells[i];
+          if (!sc || sc.outsideArea || !sc.band) continue;
+          var sfill = this._colorForBand(sc.band, 1);
+          if (!sfill) continue;
+          var sx = nw.x + sc.col * cellW - tileX;
+          var sy = nw.y + sc.row * cellH - tileY;
+          if (sx > 256 || sy > 256 || sx + cellW < 0 || sy + cellH < 0) continue;
+          ctx.fillStyle = sfill;
+          ctx.fillRect(sx, sy, Math.ceil(cellW) + 1, Math.ceil(cellH) + 1);
+          if (sc.band === "higher") {
+            ctx.strokeStyle = "rgba(255,255,255,0.10)";
+            ctx.strokeRect(sx + 0.5, sy + 0.5, Math.max(1, cellW - 1), Math.max(1, cellH - 1));
+          }
+        }
+        return;
+      }
 
       if (gis) {
         // Discrete cells — no smooth gradient implying sub-resolution precision

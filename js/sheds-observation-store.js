@@ -359,6 +359,7 @@
       compareMode: false,
       /** Phase 3: observations do NOT modify Habitat MODEL unless explicitly enabled. */
       includeObservationsInHabitat: false,
+      searchAreasVisible: false,
       opacity: 0.42,
       activePreset: "balanced",
       seasonPhaseOverride: null,
@@ -397,6 +398,7 @@
         diagnosticMode: !!parsed.diagnosticMode,
         compareMode: !!parsed.compareMode,
         includeObservationsInHabitat: parsed.includeObservationsInHabitat === true,
+        searchAreasVisible: parsed.searchAreasVisible === true,
         opacity: typeof parsed.opacity === "number" ? parsed.opacity : 0.42,
         activePreset: parsed.activePreset || "balanced",
         seasonPhaseOverride: parsed.seasonPhaseOverride || null,

@@ -31,6 +31,7 @@
   var Ux = window.WaypointShedsUxPolish;
   var FieldTools = window.WaypointShedsFieldTools;
   var InspectIntel = window.WaypointShedsInspectIntel;
+  var SearchPriority = window.WaypointShedsSearchPriority;
 
   var NEUTRAL = { lat: 44.5, lng: -92.5, zoom: 6 }; // Midwest overview — not “you”
   var GRID_ROWS = 18;
@@ -117,7 +118,15 @@
     inspectElevStatus: "idle",
     inspectTerrainDerived: null,
     inspectTerrainStatus: "idle",
-    inspectReport: null
+    inspectTerrainNeighbors: null,
+    inspectReport: null,
+    inspectPriority: null,
+    searchAreasVisible: false,
+    searchAreasAbort: null,
+    searchAreasFetchGen: 0,
+    searchAreasTimer: null,
+    searchAreasStatus: "idle",
+    lastSearchAreasGrid: null
   };
 
   var els = {};
@@ -129,6 +138,7 @@
   var measureLayer = null;
   var measureLine = null;
   var inspectMarker = null;
+  var searchAreasLayer = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -1403,6 +1413,7 @@
         zoom: map.getZoom()
       });
       scheduleRecompute(450);
+      scheduleSearchAreas(500);
     });
 
     map.on("click", function (e) {
@@ -1485,6 +1496,16 @@
     state.recomputeTimer = setTimeout(recomputeHeat, ms || 300);
   }
 
+  function scheduleSearchAreas(ms) {
+    clearTimeout(state.searchAreasTimer);
+    if (!state.searchAreasVisible) {
+      if (searchAreasLayer) searchAreasLayer.setHeatVisible(false);
+      syncSearchAreasLegend();
+      return;
+    }
+    state.searchAreasTimer = setTimeout(recomputeSearchAreas, ms || 400);
+  }
+
   function elevCacheKey(bounds) {
     return [
       bounds.getWest().toFixed(3),
@@ -1563,6 +1584,211 @@
       state.elevCache = null;
       state.elevKey = "";
       return null;
+    });
+  }
+
+  function fetchSearchAreaElevations(bounds, rows, cols) {
+    if (!SearchPriority || !SearchPriority.haloLatLngs) {
+      return Promise.resolve(null);
+    }
+    var pts = SearchPriority.haloLatLngs(
+      SearchPriority.clampSearchBounds({
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        east: bounds.getEast()
+      }),
+      rows,
+      cols
+    );
+    if (state.searchAreasAbort) {
+      try { state.searchAreasAbort.abort(); } catch (e) { /* */ }
+      state.searchAreasAbort = null;
+    }
+    var ac = typeof AbortController !== "undefined" ? new AbortController() : null;
+    state.searchAreasAbort = ac;
+    var gen = ++state.searchAreasFetchGen;
+    var chunks = [];
+    var size = 80;
+    var i;
+    for (i = 0; i < pts.lats.length; i += size) {
+      chunks.push({
+        lat: pts.lats.slice(i, i + size),
+        lng: pts.lngs.slice(i, i + size)
+      });
+    }
+    return chunks.reduce(function (chain, ch) {
+      return chain.then(function (acc) {
+        if (ac && ac.signal && ac.signal.aborted) {
+          return Promise.reject(Object.assign(new Error("aborted"), { name: "AbortError" }));
+        }
+        var url = "https://api.open-meteo.com/v1/elevation?latitude=" +
+          ch.lat.map(function (n) { return n.toFixed(5); }).join(",") +
+          "&longitude=" + ch.lng.map(function (n) { return n.toFixed(5); }).join(",");
+        var opts = { credentials: "omit" };
+        if (ac && ac.signal) opts.signal = ac.signal;
+        return fetch(url, opts).then(function (res) {
+          if (!res.ok) throw new Error("elevation " + res.status);
+          return res.json();
+        }).then(function (data) {
+          return acc.concat(data.elevation || []);
+        });
+      });
+    }, Promise.resolve([])).then(function (allElev) {
+      if (gen !== state.searchAreasFetchGen) return null;
+      if (state.searchAreasAbort === ac) state.searchAreasAbort = null;
+      return allElev;
+    }).catch(function (err) {
+      if (gen !== state.searchAreasFetchGen) return null;
+      if (state.searchAreasAbort === ac) state.searchAreasAbort = null;
+      if (err && err.name === "AbortError") return null;
+      return { failed: true };
+    });
+  }
+
+  function ensureSearchAreasLayer() {
+    if (searchAreasLayer || !map || !Heat) return searchAreasLayer;
+    searchAreasLayer = Heat.createHeatLayer(map, {
+      opacity: 0.40,
+      zIndex: 360,
+      className: "sheds-heat-layer sheds-search-areas-layer"
+    });
+    if (searchAreasLayer.setSmooth) searchAreasLayer.setSmooth(false);
+    searchAreasLayer.setHeatVisible(!!state.searchAreasVisible);
+    return searchAreasLayer;
+  }
+
+  function setSearchAreasVisible(on) {
+    state.searchAreasVisible = !!on;
+    if (state.prefs) {
+      state.prefs.searchAreasVisible = state.searchAreasVisible;
+      if (Store && Store.saveModelPrefs) Store.saveModelPrefs(state.prefs);
+    }
+    var btn = $("btn-search-areas");
+    if (btn) btn.setAttribute("aria-pressed", state.searchAreasVisible ? "true" : "false");
+    var chk = $("search-areas-visible");
+    if (chk) chk.checked = state.searchAreasVisible;
+    var legend = $("search-areas-legend");
+    if (legend) legend.setAttribute("data-on", state.searchAreasVisible ? "true" : "false");
+    if (!state.searchAreasVisible) {
+      if (state.searchAreasAbort) {
+        try { state.searchAreasAbort.abort(); } catch (e2) { /* */ }
+        state.searchAreasAbort = null;
+      }
+      state.searchAreasFetchGen += 1;
+      if (searchAreasLayer) {
+        searchAreasLayer.setHeatVisible(false);
+        searchAreasLayer.setGrid({ cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
+      }
+      state.searchAreasStatus = "idle";
+      syncSearchAreasLegend();
+      return;
+    }
+    ensureSearchAreasLayer();
+    scheduleSearchAreas(80);
+  }
+
+  function syncSearchAreasLegend() {
+    var legend = $("search-areas-legend");
+    if (!legend) return;
+    legend.hidden = false;
+    legend.setAttribute("data-on", state.searchAreasVisible ? "true" : "false");
+    var body = $("search-areas-legend-body");
+    if (body) body.hidden = !state.searchAreasVisible;
+    var status = $("search-areas-legend-status");
+    if (!status) return;
+    if (!state.searchAreasVisible) {
+      status.textContent = "Terrain search priority — off";
+      return;
+    }
+    if (state.searchAreasStatus === "loading") status.textContent = "Reading terrain…";
+    else if (state.searchAreasStatus === "insufficient_zoom") status.textContent = "Zoom in to inspect terrain";
+    else if (state.searchAreasStatus === "unavailable") status.textContent = "Terrain intelligence unavailable here";
+    else if (state.searchAreasStatus === "incomplete") status.textContent = "Not enough terrain data";
+    else if (state.searchAreasStatus === "failed") status.textContent = "Terrain intelligence unavailable here";
+    else status.textContent = "Higher / Moderate / Lower — not a find chance";
+  }
+
+  function applySearchAreasGrid(grid) {
+    ensureSearchAreasLayer();
+    state.lastSearchAreasGrid = grid;
+    if (searchAreasLayer) {
+      searchAreasLayer.setGrid(grid || { cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
+      searchAreasLayer.setHeatVisible(!!state.searchAreasVisible);
+    }
+    syncSearchAreasLegend();
+  }
+
+  function recomputeSearchAreas() {
+    if (!map || !SearchPriority) return;
+    if (!state.searchAreasVisible) {
+      applySearchAreasGrid({ cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
+      return;
+    }
+    var zoom = map.getZoom();
+    var mapBounds = map.getBounds();
+    var rawBounds = {
+      north: mapBounds.getNorth(),
+      south: mapBounds.getSouth(),
+      west: mapBounds.getWest(),
+      east: mapBounds.getEast()
+    };
+    var searchBounds = SearchPriority.clampSearchBounds
+      ? SearchPriority.clampSearchBounds(rawBounds)
+      : rawBounds;
+    var rows = SearchPriority.GRID_ROWS || 12;
+    var cols = SearchPriority.GRID_COLS || 12;
+    if (zoom < (SearchPriority.MIN_ZOOM || 12)) {
+      state.searchAreasStatus = "insufficient_zoom";
+      applySearchAreasGrid(SearchPriority.evaluateGrid({
+        zoom: zoom,
+        bounds: searchBounds,
+        rows: rows,
+        cols: cols,
+        elevations: []
+      }));
+      return;
+    }
+    if (state.offlineForced || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+      state.searchAreasStatus = "unavailable";
+      applySearchAreasGrid({
+        renderMode: "search-priority",
+        status: "unavailable",
+        rows: 0,
+        cols: 0,
+        cells: [],
+        bounds: searchBounds,
+        message: SearchPriority.COPY.UNAVAILABLE
+      });
+      return;
+    }
+    state.searchAreasStatus = "loading";
+    syncSearchAreasLegend();
+    fetchSearchAreaElevations(mapBounds, rows, cols).then(function (elev) {
+      if (!state.searchAreasVisible) return;
+      if (elev && elev.failed) {
+        state.searchAreasStatus = "failed";
+        applySearchAreasGrid({
+          renderMode: "search-priority",
+          status: "failed",
+          rows: 0,
+          cols: 0,
+          cells: [],
+          bounds: searchBounds,
+          message: SearchPriority.COPY.FAILED
+        });
+        return;
+      }
+      if (!elev) return;
+      var grid = SearchPriority.evaluateGrid({
+        zoom: map.getZoom(),
+        bounds: searchBounds,
+        rows: rows,
+        cols: cols,
+        elevations: elev
+      });
+      state.searchAreasStatus = grid.status || "ready";
+      applySearchAreasGrid(grid);
     });
   }
 
@@ -3399,6 +3625,7 @@
     state.inspectElevM = null;
     state.inspectElevStatus = "idle";
     state.inspectTerrainDerived = null;
+    state.inspectTerrainNeighbors = null;
     state.inspectTerrainStatus = "idle";
     state.inspectReport = null;
     state.inspectElevGen += 1;
@@ -3502,6 +3729,31 @@
     });
   }
 
+  function buildInspectPriority() {
+    if (!SearchPriority || !state.inspectLatLng) return null;
+    var today = SearchPriority.todayContextFromHunt
+      ? SearchPriority.todayContextFromHunt(state.lastHunt)
+      : { available: false };
+    var derived = state.inspectTerrainDerived || {};
+    var nb = state.inspectTerrainNeighbors || {};
+    return SearchPriority.evaluatePoint({
+      zoom: map ? map.getZoom() : 0,
+      elevStatus: state.inspectElevStatus,
+      terrainStatus: state.inspectTerrainStatus,
+      raw: {
+        elevM: typeof derived.elevM === "number" && isFinite(derived.elevM) ? derived.elevM : state.inspectElevM,
+        slopeDeg: derived.slopeDeg,
+        aspectDeg: derived.aspectDeg,
+        northM: nb.northM,
+        southM: nb.southM,
+        eastM: nb.eastM,
+        westM: nb.westM,
+        stepM: nb.stepM || 60
+      },
+      today: today
+    });
+  }
+
   function renderInspectHud() {
     var body = $("inspect-body");
     var moreBody = $("inspect-more-body");
@@ -3510,12 +3762,30 @@
     if (!body || !hud || !state.inspectLatLng) return;
     var report = buildCurrentInspectReport();
     state.inspectReport = report;
-    if (report) {
-      body.textContent = report.hudFacts || report.hudText || "";
-      if (moreBody) moreBody.textContent = report.hudExplain || "";
-      if (more) {
-        more.hidden = !(report.hudExplain && String(report.hudExplain).trim());
+    var priority = buildInspectPriority();
+    state.inspectPriority = priority;
+    var noteEl = $("inspect-field-note");
+    function setPriorityHud(text) {
+      var raw = String(text || "");
+      var idx = raw.lastIndexOf("\nField note\n");
+      if (idx >= 0) {
+        body.textContent = raw.slice(0, idx).trim();
+        if (noteEl) {
+          noteEl.textContent = raw.slice(idx + "\nField note\n".length).trim();
+          noteEl.hidden = false;
+        }
+      } else {
+        body.textContent = raw;
+        if (noteEl) {
+          noteEl.textContent = "";
+          noteEl.hidden = true;
+        }
       }
+    }
+    if (priority && SearchPriority && SearchPriority.formatInspectHud) {
+      setPriorityHud(SearchPriority.formatInspectHud(priority));
+    } else if (report) {
+      setPriorityHud(report.hudFacts || report.hudText || "");
     } else {
       var ll = state.inspectLatLng;
       var lines = [];
@@ -3535,8 +3805,18 @@
       if (rel.fromSearch) lines.push(rel.fromSearch);
       lines.push("Context only — not habitat proof.");
       body.textContent = lines.join("\n");
-      if (moreBody) moreBody.textContent = "";
-      if (more) more.hidden = true;
+      if (noteEl) {
+        noteEl.textContent = "";
+        noteEl.hidden = true;
+      }
+    }
+    var moreText = "";
+    if (report) {
+      moreText = (report.hudFacts ? report.hudFacts + "\n\n" : "") + (report.hudExplain || "");
+    }
+    if (moreBody) moreBody.textContent = moreText;
+    if (more) {
+      more.hidden = !String(moreText).trim();
     }
     hud.removeAttribute("hidden");
     syncSearchPrompt();
@@ -3620,6 +3900,7 @@
   function fetchInspectTerrain(lat, lng, gen) {
     state.inspectTerrainStatus = "loading";
     state.inspectTerrainDerived = null;
+    state.inspectTerrainNeighbors = null;
     renderInspectHud();
     if (!InspectIntel || !InspectIntel.elevationNeighborhoodUrl) {
       state.inspectTerrainStatus = "unavailable";
@@ -3654,9 +3935,18 @@
         if (!derived || derived.slopeDeg == null) {
           state.inspectTerrainStatus = "unavailable";
           state.inspectTerrainDerived = null;
+          state.inspectTerrainNeighbors = null;
         } else {
           state.inspectTerrainStatus = "ready";
           state.inspectTerrainDerived = derived;
+          state.inspectTerrainNeighbors = {
+            centerM: elev[0],
+            northM: elev[1],
+            southM: elev[2],
+            eastM: elev[3],
+            westM: elev[4],
+            stepM: nb.stepM
+          };
           if (state.inspectElevStatus !== "ready" && derived.elevM != null) {
             state.inspectElevStatus = "ready";
             state.inspectElevM = derived.elevM;
@@ -3669,6 +3959,7 @@
         if (gen !== state.inspectElevGen) return;
         state.inspectTerrainStatus = "failed";
         state.inspectTerrainDerived = null;
+        state.inspectTerrainNeighbors = null;
         renderInspectHud();
       });
   }
@@ -3679,8 +3970,10 @@
     state.inspectArmed = true;
     state.inspectLatLng = { lat: latlng.lat, lng: latlng.lng };
     state.inspectTerrainDerived = null;
+    state.inspectTerrainNeighbors = null;
     state.inspectTerrainStatus = "idle";
     state.inspectReport = null;
+    state.inspectPriority = null;
     shellModeClass(false, true);
     var hud = $("inspect-hud");
     var more = $("inspect-more");
@@ -4061,6 +4354,16 @@
       syncHeatLegend();
       scheduleRecompute(50);
     });
+    if ($("search-areas-visible")) {
+      $("search-areas-visible").addEventListener("change", function () {
+        setSearchAreasVisible($("search-areas-visible").checked);
+      });
+    }
+    if ($("btn-search-areas")) {
+      $("btn-search-areas").addEventListener("click", function () {
+        setSearchAreasVisible(!state.searchAreasVisible);
+      });
+    }
     function readHeatFilterControls() {
       state.heatMode = $("heat-mode") ? $("heat-mode").value : "habitat";
       if (state.heatMode === "biological") state.heatMode = "habitat";
@@ -4222,6 +4525,7 @@
 
   function syncControlsForm() {
     $("heat-visible").checked = state.prefs.heatVisible;
+    if ($("search-areas-visible")) $("search-areas-visible").checked = !!state.searchAreasVisible;
     $("obs-visible").checked = state.prefs.obsVisible;
     $("heat-opacity").value = state.prefs.opacity;
     if ($("heat-opacity-val")) {
@@ -4336,6 +4640,7 @@
     if (state.prefs.coverageVisible == null) state.prefs.coverageVisible = true;
     if (state.prefs.opacity == null) state.prefs.opacity = DEFAULT_HEAT_OPACITY;
     if (state.prefs.includeObservationsInHabitat == null) state.prefs.includeObservationsInHabitat = false;
+    state.searchAreasVisible = !!state.prefs.searchAreasVisible;
     if (Store.migrateIfNeeded) Store.migrateIfNeeded();
     if (Sessions.migrateSessionsIfNeeded) Sessions.migrateSessionsIfNeeded();
     state.heatFilters = Patterns.defaultHeatFilters();
@@ -4378,6 +4683,8 @@
     locateUser({ center: true });
     setPlanExpanded(false);
     syncHeatLegend();
+    syncSearchAreasLegend();
+    if (state.searchAreasVisible) setSearchAreasVisible(true);
     syncSearchPrompt();
     initFirstRunCoach();
     ensureGisPacks().then(function () {

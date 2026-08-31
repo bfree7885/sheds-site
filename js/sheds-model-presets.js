@@ -97,6 +97,8 @@
       showConfidence: !!(prefs && prefs.showConfidence),
       diagnosticMode: !!(prefs && prefs.diagnosticMode),
       compareMode: !!(prefs && prefs.compareMode),
+      includeObservationsInHabitat: !!(prefs && prefs.includeObservationsInHabitat),
+      searchAreasVisible: !!(prefs && prefs.searchAreasVisible),
       opacity: prefs && typeof prefs.opacity === "number" ? prefs.opacity : 0.55,
       seasonPhaseOverride: null,
       activePreset: presetId || "balanced",

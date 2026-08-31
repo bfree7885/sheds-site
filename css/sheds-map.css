@@ -214,7 +214,7 @@ html, body {
 }
 
 .sheds-inspect-hud {
-  max-height: min(38vh, 16.5rem);
+  max-height: min(44vh, 19rem);
   display: flex;
   flex-direction: column;
   gap: 0.22rem;
@@ -251,7 +251,7 @@ html, body {
   color: var(--sheds-muted);
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   overflow: hidden;
 }
 
@@ -266,9 +266,17 @@ html, body {
   white-space: pre-wrap;
   overflow: auto;
   overflow-x: hidden;
-  max-height: min(22vh, 10.5rem);
+  max-height: min(26vh, 12.5rem);
   -webkit-overflow-scrolling: touch;
   word-break: break-word;
+}
+
+.sheds-inspect-hud__note {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: var(--sheds-muted);
 }
 
 .sheds-inspect-hud.is-expanded .sheds-inspect-hud__body {
@@ -396,7 +404,19 @@ html.sheds-session-active .sheds-inspect-hud {
   .sheds-measure-hud,
   .sheds-inspect-hud {
     top: calc(var(--sheds-mobile-header-end, 3.95rem) + var(--sheds-mobile-chrome-gap, 0.45rem));
-    max-width: min(20rem, calc(100vw - 5.5rem));
+    max-width: min(20rem, calc(100vw - 1rem));
+  }
+
+  .sheds-inspect-hud {
+    max-height: min(42vh, 18rem);
+  }
+
+  .sheds-inspect-hud__lede {
+    display: none;
+  }
+
+  .sheds-inspect-hud__body {
+    max-height: min(16vh, 6.5rem);
   }
 
   html.sheds-session-active .sheds-measure-hud,
@@ -868,6 +888,83 @@ html.sheds-session-active .sheds-inspect-hud {
 .sheds-swatch--low { background: rgba(90, 130, 110, 0.55); }
 .sheds-swatch--mid { background: rgba(190, 150, 55, 0.65); }
 .sheds-swatch--high { background: rgba(90, 150, 70, 0.75); }
+.sheds-swatch--search-higher { background: rgba(52, 118, 74, 0.85); }
+.sheds-swatch--search-moderate { background: rgba(186, 148, 58, 0.75); }
+.sheds-swatch--search-lower { background: rgba(92, 98, 90, 0.65); }
+
+.sheds-search-legend {
+  position: absolute;
+  left: calc(0.5rem + var(--sheds-safe-left));
+  bottom: calc(var(--sheds-sheet-peek) + 5.85rem + var(--sheds-safe-bottom));
+  z-index: 532;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  align-items: stretch;
+  max-width: min(16.5rem, calc(100vw - 5.5rem));
+  padding: 0.28rem 0.45rem 0.35rem;
+  border-radius: 14px;
+  background: rgba(6, 16, 12, 0.92);
+  border: 1px solid var(--sheds-border);
+  backdrop-filter: var(--sheds-blur);
+  -webkit-backdrop-filter: var(--sheds-blur);
+  color: var(--sheds-text);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  pointer-events: auto;
+}
+
+.sheds-search-legend__toggle {
+  appearance: none;
+  margin: 0;
+  padding: 0.2rem 0.15rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  min-height: 2.4rem;
+  cursor: pointer;
+}
+
+.sheds-search-legend__toggle[aria-pressed="true"] {
+  color: #d7ecd0;
+}
+
+.sheds-search-legend__toggle:focus-visible {
+  outline: 2px solid var(--sheds-accent);
+  outline-offset: 2px;
+}
+
+.sheds-search-legend__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.55rem;
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.sheds-search-legend__body[hidden] {
+  display: none !important;
+}
+
+.sheds-search-legend__status {
+  flex: 1 1 100%;
+  color: var(--sheds-muted);
+  font-size: 0.62rem;
+}
+
+html.sheds-sheet-open .sheds-search-legend {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+#sheds-map-shell.is-inspecting .sheds-search-legend {
+  bottom: calc(0.75rem + var(--sheds-safe-bottom));
+}
 
 /* —— Story sheet: primary intelligence over the map —— */
 .sheds-sheet-field,
@@ -1554,6 +1651,10 @@ html.sheds-sheet-open .leaflet-control-attribution {
   pointer-events: none;
 }
 
+.sheds-search-areas-layer {
+  pointer-events: none;
+}
+
 .sheds-user-pulse {
   /* legacy class — opacity-only pulse; prefer .sheds-user-marker */
   animation: sheds-pulse 2s ease-in-out infinite;
@@ -1678,6 +1779,11 @@ html.sheds-sheet-open .leaflet-control-attribution {
   .sheds-legend-float {
     /* Plan card (~9rem) + gap — keep legend fully above Today's Search */
     bottom: calc(10.25rem + var(--sheds-safe-bottom));
+  }
+
+  .sheds-search-legend {
+    bottom: calc(14.35rem + var(--sheds-safe-bottom));
+    max-width: min(18rem, 22vw);
   }
 
   /*
@@ -2579,6 +2685,18 @@ html.sheds-sheet-open .leaflet-control-attribution {
     max-width: min(10.75rem, calc(100vw - 5rem));
     padding: 0;
     overflow: hidden;
+  }
+
+  .sheds-search-legend {
+    left: calc(0.5rem + var(--sheds-safe-left));
+    bottom: calc(var(--sheds-sheet-peek) + var(--sheds-dock-h) + 3.35rem + var(--sheds-safe-bottom));
+    max-width: min(11.25rem, calc(100vw - 5rem));
+    padding: 0.15rem 0.4rem 0.2rem;
+  }
+
+  .sheds-search-legend__toggle {
+    min-height: 2.2rem;
+    font-size: 0.68rem;
   }
 
   .sheds-legend-float__toggle {

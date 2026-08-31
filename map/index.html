@@ -57,8 +57,9 @@
             <p class="sheds-inspect-hud__kicker">Inspect</p>
             <button type="button" class="sheds-btn sheds-btn--ghost sheds-inspect-hud__close" id="btn-inspect-close">Done</button>
           </div>
-          <p class="sheds-inspect-hud__lede">What is here, and why it may matter — not a claim that deer or antlers are here.</p>
+          <p class="sheds-inspect-hud__lede">Search priority and terrain — not a claim that deer or antlers are here.</p>
           <pre class="sheds-inspect-hud__body" id="inspect-body"></pre>
+          <p class="sheds-inspect-hud__note" id="inspect-field-note"></p>
           <details class="sheds-inspect-hud__more" id="inspect-more">
             <summary class="sheds-inspect-hud__more-toggle">Why this may matter and limits</summary>
             <pre class="sheds-inspect-hud__more-body" id="inspect-more-body"></pre>
@@ -194,6 +195,19 @@
               <option value="large">Large (~1 km)</option>
             </select>
           </label>
+        </div>
+      </div>
+
+      <!-- Search Areas — V1.3 terrain search priority (not find chance) -->
+      <div class="sheds-search-legend" id="search-areas-legend" data-on="false" aria-label="Search Areas">
+        <button type="button" class="sheds-search-legend__toggle" id="btn-search-areas" aria-pressed="false" title="Search Areas — terrain worth inspecting">
+          Search Areas
+        </button>
+        <div class="sheds-search-legend__body" id="search-areas-legend-body" hidden>
+          <span><i class="sheds-swatch sheds-swatch--search-higher" aria-hidden="true"></i>Higher</span>
+          <span><i class="sheds-swatch sheds-swatch--search-moderate" aria-hidden="true"></i>Moderate</span>
+          <span><i class="sheds-swatch sheds-swatch--search-lower" aria-hidden="true"></i>Lower</span>
+          <span class="sheds-search-legend__status" id="search-areas-legend-status">Terrain search priority — not a find chance</span>
         </div>
       </div>
 
@@ -556,6 +570,8 @@
         </div>
 
         <label class="sheds-check"><input type="checkbox" id="heat-visible" checked> Show landscape guidance overlay</label>
+      <label class="sheds-check"><input type="checkbox" id="search-areas-visible"> Search Areas — terrain search priority</label>
+      <p class="sheds-note">Search Areas highlights terrain that may be worth inspecting. It is not a claim that sheds or deer are present.</p>
       <label class="sheds-check"><input type="checkbox" id="obs-visible" checked> Show observation markers</label>
       <label class="sheds-check"><input type="checkbox" id="coverage-visible" checked> Show search-coverage marks</label>
       <label class="sheds-check"><input type="checkbox" id="sgl-visible"> Show State Game Lands (access context only)</label>
@@ -844,6 +860,7 @@
   <script src="../js/sheds-tile-provider.js"></script>
   <script src="../js/sheds-map-field-tools.js"></script>
   <script src="../js/sheds-inspect-intel.js"></script>
+  <script src="../js/sheds-search-priority.js"></script>
   <script src="../js/sheds-import-json.js"></script>
   <script src="../js/sheds-map-app.js"></script>
 </body>

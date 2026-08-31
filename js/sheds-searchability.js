@@ -16,23 +16,33 @@
 
   function snowStatus(weather) {
     var wx = weather || {};
-    if (typeof wx.snowMm !== "number" || !isFinite(wx.snowMm)) {
+    var depthKnown = wx.snowDepthKnown === true &&
+      typeof wx.snowDepthM === "number" && isFinite(wx.snowDepthM);
+    var snowfallKnown = typeof wx.snowMm === "number" && isFinite(wx.snowMm);
+    var cover = wx.snowCover || null;
+
+    if (depthKnown) {
       return {
-        known: false,
-        label: "Snow depth unavailable",
-        detail:
-          "No measured snow depth. Recent snowfall water-equivalent may be missing too — do not invent depth from temperature."
+        known: true,
+        depthKnown: true,
+        depthM: wx.snowDepthM,
+        snowfallSumCm: snowfallKnown ? wx.snowMm : null,
+        label: cover && cover.label ? cover.label : "Measured snow depth",
+        detail: cover && cover.detail
+          ? cover.detail
+          : "Measured snow depth is used for cover. Snowfall is not treated as depth."
       };
     }
-    // Open-Meteo snowfall_sum is water-equivalent mm, not depth.
+
+    // Missing snow_depth is not zero snow. Snowfall/SWE is not a substitute.
     return {
-      known: true,
-      snowfallWaterMm: wx.snowMm,
+      known: false,
       depthKnown: false,
-      label: "Recent snowfall (water-equivalent), depth unknown",
-      detail:
-        Math.round(wx.snowMm * 10) / 10 +
-        " mm snowfall water-equivalent (3-day sum). Ground depth is not sensed — treat cover as unknown."
+      snowfallSumCm: snowfallKnown ? wx.snowMm : null,
+      label: "Snow-depth data is unavailable",
+      detail: snowfallKnown
+        ? "Snow-depth data is unavailable. Recent snowfall is listed separately and is not treated as ground depth."
+        : "Snow-depth data is unavailable. Do not treat missing depth as clear ground."
     };
   }
 
@@ -81,7 +91,7 @@
     var limitations = [
       DISCLAIMER,
       "Weather is not treated as a same-day antler-cast trigger.",
-      "Snow depth is unavailable unless a depth sensor exists (it does not here)."
+      "Snow depth is used only when Open-Meteo returns a numeric snow_depth. Missing depth is not treated as clear ground."
     ];
 
     return {

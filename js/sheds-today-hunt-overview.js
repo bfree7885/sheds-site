@@ -49,8 +49,15 @@
     return null;
   }
 
+  function openMapHref() {
+    var host = document.documentElement.getAttribute("data-shed-host") === "1";
+    var path = (global.location && global.location.pathname) || "";
+    if (host && !/\/host(\/|$)/.test(path)) return "map/";
+    return "../map/";
+  }
+
   function render(hunt) {
-    Hunt.fillHuntRoot(root, hunt, { includeQuestion: false });
+    Hunt.fillHuntRoot(root, hunt, { includeQuestion: false, openMapHref: openMapHref() });
     setStatus("");
     showPrompt(!!(hunt && hunt.status === "need_location"));
   }

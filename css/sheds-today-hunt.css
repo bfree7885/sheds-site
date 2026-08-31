@@ -98,9 +98,34 @@
 }
 
 .sheds-hunt__season {
-  margin: 0.9rem 0 0.4rem;
+  margin: 0.15rem 0 0.75rem;
   font-size: 0.95rem;
   color: var(--sheds-ink, #f0e1c3);
+}
+
+.sheds-hunt__conditions {
+  margin: 0 0 0.85rem;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.sheds-hunt__conditions li {
+  margin: 0;
+  color: var(--sheds-muted, #bfa98c);
+  line-height: 1.45;
+  overflow-wrap: break-word;
+}
+
+.sheds-hunt__cta {
+  margin: 0.15rem 0 0.9rem;
+}
+
+.sheds-hunt__cta .sheds-host-btn {
+  display: inline-flex;
+}
+
+#todays-hunt:has(.sheds-hunt__cta) ~ .xp-stage__cta {
+  display: none;
 }
 
 .sheds-hunt__support,
@@ -163,13 +188,27 @@
   display: none;
 }
 
-@media (max-width: 360px) {
+@media (max-width: 430px) {
   .sheds-hunt__today {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .sheds-hunt__season {
+    margin-bottom: 0.55rem;
+  }
+
+  .sheds-hunt__conditions {
+    margin-bottom: 0.65rem;
   }
 
   .sheds-hunt__disclaimer {
     font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .sheds-hunt__today {
+    margin-bottom: 0.65rem;
   }
 
   .sheds-hunt-prompt {

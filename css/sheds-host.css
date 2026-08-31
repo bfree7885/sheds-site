@@ -158,6 +158,18 @@ button.sheds-host-btn {
   display: none;
 }
 
+/* Keep Open Map on screen at phone widths. */
+@media (max-width: 430px) {
+  .xp-stage__cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin-top: 0.45rem;
+    padding: 0.55rem 0 0.45rem;
+    background: color-mix(in srgb, var(--wp-bg, #181513) 94%, #181513);
+  }
+}
+
 @media (max-width: 360px) {
   .sheds-host-brand__powered {
     display: none;

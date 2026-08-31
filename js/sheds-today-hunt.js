@@ -1,9 +1,13 @@
 /**
- * Sheds V1.1 — Today's Hunt composer.
+ * Sheds V1.1 / V1.2 — Today's Hunt composer.
  *
  * BAND MEANING (hunter-facing):
  *   Overall shed-hunt recommendation for today — not field-searchability
  *   alone, and never a find / antler / deer probability.
+ *
+ * V1.2 adds freeze/thaw, 24–48 h temperature trend, and snow-depth class as
+ * supporting signals. They refine the recommendation; they do not overpower
+ * seasonal timing, and they never imply antler drop or find chance.
  *
  * Searchability (weather, daylight, footing) is one INPUT. Season is another.
  * Excellent walking weather must not produce a high overall band when the
@@ -227,9 +231,12 @@
         laterWind >= wx.windSpeedMs + WIND_INCREASE) {
       items.push("Wind increasing later — lee edges may matter more if they exist.");
     }
-    if (typeof wx.snowMm === "number" && wx.snowMm >= PERSISTENT_SWE_MM &&
+    if (wx.snowDepthKnown && wx.snowCover &&
+        (wx.snowCover.status === "limiting" || wx.snowCover.status === "deep")) {
+      items.push("Snow remains a limiting factor.");
+    } else if (!wx.snowDepthKnown && typeof wx.snowMm === "number" && wx.snowMm >= PERSISTENT_SWE_MM &&
         !(typeof wx.tempC === "number" && wx.tempC > 0 && wx.snowMm > MELT_SWE_MM)) {
-      items.push("Snow cover may still hide ground — depth is not measured.");
+      items.push("Snow cover may still hide ground — snow-depth data is unavailable.");
     }
     if (typeof wx.sunsetHour === "number" &&
         wx.sunsetHour - nowHour < DAYLIGHT_CLOSE_H && wx.sunsetHour - nowHour > 0) {
@@ -270,8 +277,10 @@
    *   building/peak/late → weather may raise; Very good still needs extras
    *
    * Very good requires: usable weather, location, favorable field conditions,
-   * season peak (or building/late with an extra melt/warming signal),
-   * SWE ≤ 25 mm, and at least one extra (warming+snow, melt, or peak with
+   * season peak (or building/late with an extra melt/warming/freeze-thaw
+   * signal), not continuously below freezing, not deep measured snow,
+   * snowfall_sum not elevated unless measured depth is none/light,
+   * and at least one extra (warming+snow, melt, freeze→thaw, or peak with
    * light cover).
    */
   function compose(opts) {
@@ -330,7 +339,7 @@
       : "uncertain";
     var snow = Searchability && typeof Searchability.snowStatus === "function"
       ? Searchability.snowStatus(wx)
-      : { known: false, depthKnown: false, label: "Snow depth unavailable" };
+      : { known: false, depthKnown: false, label: "Snow-depth data is unavailable" };
 
     var WxMod = getWeather();
     var tempTrend = (wx && wx.tempTrend) || null;
@@ -347,6 +356,42 @@
     }
     if (tempTrend.status === "unknown" && usableWx) {
       missingInputs.push("temperature_trend");
+    }
+
+    var freezeThaw = (wx && wx.freezeThaw) || null;
+    if (!freezeThaw && wx && WxMod && typeof WxMod.deriveFreezeThaw === "function") {
+      freezeThaw = WxMod.deriveFreezeThaw({
+        hourlyTimes: wx.hourlyTimes,
+        hourlyTemps: wx.hourlyTemps,
+        todayDateStr: WxMod.localDateString
+          ? WxMod.localDateString(now, wx.utcOffsetMinutes != null ? wx.utcOffsetMinutes * 60 : null)
+          : null,
+        dailyMinC: wx.dailyMinC,
+        dailyMaxC: wx.dailyMaxC,
+        now: now
+      });
+    }
+    if (!freezeThaw) {
+      freezeThaw = {
+        status: "insufficient",
+        label: "Freeze/thaw unknown",
+        detail: "Not enough temperature data to judge freeze or thaw."
+      };
+    }
+    if (freezeThaw.status === "insufficient" && usableWx) {
+      missingInputs.push("freeze_thaw");
+    }
+
+    var snowCover = (wx && wx.snowCover) || null;
+    if (!snowCover && WxMod && typeof WxMod.classifySnowDepth === "function") {
+      snowCover = WxMod.classifySnowDepth(wx && wx.snowDepthM, !!(wx && wx.snowDepthKnown));
+    }
+    if (!snowCover) {
+      snowCover = {
+        status: "unavailable",
+        label: "Snow-depth data is unavailable",
+        detail: "Snow-depth data is unavailable."
+      };
     }
 
     var cat = seasonCategory(timing);
@@ -375,10 +420,21 @@
       rating = baseFromSearchability(favorability);
       ruleIds.push("base-field-" + favorability);
 
-      if (typeof wx.snowMm === "number" && wx.snowMm > DEEP_SWE_MM) {
+      var depthKnownNoneOrLight = wx.snowDepthKnown === true &&
+        (snowCover.status === "none" || snowCover.status === "light");
+
+      if (snowCover.status === "deep") {
+        rating = minBand(rating, "Fair");
+        ruleIds.push("cap-deep-snow-depth");
+        why.push("Snow remains a limiting factor.");
+      } else if (typeof wx.snowMm === "number" && wx.snowMm > DEEP_SWE_MM && !depthKnownNoneOrLight) {
         rating = minBand(rating, "Fair");
         ruleIds.push("cap-deep-swe");
-        why.push("Recent snow water is elevated — ground depth is not measured, so opportunity stays cautious.");
+        if (wx.snowDepthKnown) {
+          why.push("Recent snowfall is elevated — measured snow cover may still hide ground, so opportunity stays cautious.");
+        } else {
+          why.push("Recent snowfall is elevated — measured ground depth is unavailable, so opportunity stays cautious.");
+        }
       }
 
       if (cat === "outside") {
@@ -399,16 +455,25 @@
         extra = true;
         ruleIds.push("extra-melt");
       }
+      if (freezeThaw.status === "freeze_thaw") {
+        extra = true;
+        ruleIds.push("extra-freeze-thaw");
+      }
       if (cat === "peak" && typeof wx.snowMm === "number" && wx.snowMm < LIGHT_SWE_MM &&
-          (typeof wx.windSpeedMs !== "number" || wx.windSpeedMs < WIND_STRONG)) {
+          (typeof wx.windSpeedMs !== "number" || wx.windSpeedMs < WIND_STRONG) &&
+          snowCover.status !== "deep" && snowCover.status !== "limiting") {
         extra = true;
         ruleIds.push("extra-peak-light-cover");
       }
 
+      var blockedBelow = freezeThaw.status === "below_freezing";
+      var blockedDeep = snowCover.status === "deep";
       var canVeryGood = usableWx && known &&
         favorability === "favorable" &&
         (cat === "peak" || (cat === "building" && extra) || (cat === "late" && extra)) &&
-        !(typeof wx.snowMm === "number" && wx.snowMm > DEEP_SWE_MM) &&
+        !(typeof wx.snowMm === "number" && wx.snowMm > DEEP_SWE_MM && !depthKnownNoneOrLight) &&
+        !blockedBelow &&
+        !blockedDeep &&
         extra;
 
       if (canVeryGood) {
@@ -416,6 +481,8 @@
         ruleIds.push("very-good");
       } else {
         ruleIds.push("very-good-blocked");
+        if (blockedBelow) ruleIds.push("very-good-blocked-below-freezing");
+        if (blockedDeep) ruleIds.push("very-good-blocked-deep-snow");
       }
 
       if (cat === "outside") {
@@ -426,8 +493,12 @@
           why.push("Field conditions are limited as well.");
         }
       } else {
-        if (tempTrend.status === "warming") {
-          why.push("Recent warming versus yesterday — a weather trend, not a cast trigger.");
+        if (freezeThaw.status === "freeze_thaw") {
+          why.push("Overnight freeze followed by afternoon thaw may help expose searchable ground.");
+        } else if (freezeThaw.status === "below_freezing") {
+          why.push("Conditions remain below freezing, so snow and frozen ground may persist.");
+        } else if (tempTrend.status === "warming") {
+          why.push("Temperatures have been warming, which may improve ground exposure.");
         } else if (tempTrend.status === "cooling") {
           why.push("Recent cooling versus yesterday — freeze-adjacent air can change how ground reads.");
         }
@@ -440,8 +511,8 @@
         }
         why.push(seasonPlain(timing) + " — regional timing, not proof that casting happened here.");
       }
-      if (typeof wx.snowMm === "number" && wx.snowMm > 0.5 && why.length < 3) {
-        why.push("Recent snow water is noted; ground depth is not measured.");
+      if (!wx.snowDepthKnown && typeof wx.snowMm === "number" && wx.snowMm > 0.5 && why.length < 3) {
+        why.push("Recent snowfall is noted; snow-depth data is unavailable.");
       }
 
       whereObj = composeWhere({ weather: wx, timing: timing, patterns: opts.patterns });
@@ -466,11 +537,41 @@
 
     var supportLevel = "limited";
     if (rated && missingInputs.filter(function (id) {
-      return id !== "temperature_trend";
+      return id !== "temperature_trend" && id !== "freeze_thaw";
     }).length === 0) {
       supportLevel = "strong";
     } else if (usableWx || known) {
       supportLevel = "partial";
+    }
+
+    var conditions = [];
+    if (rated) {
+      if (freezeThaw.status === "freeze_thaw") {
+        conditions.push("Overnight freeze followed by afternoon thaw may help expose searchable ground.");
+      } else if (freezeThaw.status === "below_freezing") {
+        conditions.push("Conditions remain below freezing, so snow and frozen ground may persist.");
+      } else if (freezeThaw.status === "above_freezing") {
+        conditions.push("Air stayed above freezing.");
+      } else if (freezeThaw.status === "near_freezing") {
+        conditions.push("Temperatures stayed near freezing — a freeze/thaw cycle is not claimed.");
+      }
+      if (tempTrend.status === "warming") {
+        conditions.push("Temperatures have been warming, which may improve ground exposure.");
+      } else if (tempTrend.status === "cooling") {
+        conditions.push("Temperatures have been cooling.");
+      } else if (tempTrend.status === "little_change") {
+        conditions.push("Temperatures have been relatively stable.");
+      }
+      if (snowCover.status === "unavailable") {
+        conditions.push("Snow-depth data is unavailable.");
+      } else if (snowCover.status === "none") {
+        conditions.push("No snow on the ground (measured).");
+      } else if (snowCover.status === "light") {
+        conditions.push("Light snow cover.");
+      } else if (snowCover.status === "limiting" || snowCover.status === "deep") {
+        conditions.push("Snow remains a limiting factor.");
+      }
+      conditions = conditions.slice(0, 3);
     }
 
     var strongest = strongestReason(why);
@@ -480,6 +581,11 @@
       why = why.filter(function (line) { return line !== strongest; });
     }
     why = why.slice(0, 3);
+    if (today && conditions.length) {
+      conditions = conditions.filter(function (line) {
+        return today.indexOf(line) < 0;
+      });
+    }
 
     var locLine = !known
       ? null
@@ -500,6 +606,7 @@
       band: band,
       today: today,
       why: why,
+      conditions: conditions,
       where: whereObj && status !== "need_location" ? whereObj.text : null,
       whereSupported: !!(whereObj && whereObj.supported),
       watch: watch,
@@ -527,7 +634,9 @@
             }
           : null,
         tempTrend: tempTrend,
-        snow: snow
+        freezeThaw: freezeThaw,
+        snow: snow,
+        snowCover: snowCover
       },
       ruleIds: ruleIds,
       bestWindow: searchability && searchability.brief && searchability.brief.timeWindows
@@ -557,6 +666,18 @@
     html += '<p class="sheds-hunt__band"><span class="sheds-hunt__band-label">' +
       escapeHtml(band) + "</span></p>";
     html += '<p class="sheds-hunt__today">' + escapeHtml(hunt.today) + "</p>";
+    html += '<p class="sheds-hunt__season">Season: ' + escapeHtml(hunt.season && hunt.season.label) + "</p>";
+    if (hunt.conditions && hunt.conditions.length) {
+      html += '<section class="sheds-hunt__block sheds-hunt__block--conditions" aria-label="Supporting conditions"><ul class="sheds-hunt__conditions">';
+      hunt.conditions.forEach(function (line) {
+        html += "<li>" + escapeHtml(line) + "</li>";
+      });
+      html += "</ul></section>";
+    }
+    if (view.openMapHref && hunt.status !== "need_location" && hunt.status !== "loading") {
+      html += '<p class="sheds-hunt__cta"><a class="sheds-host-btn" href="' +
+        escapeHtml(view.openMapHref) + '">Open Map</a></p>';
+    }
     if (hunt.why && hunt.why.length) {
       html += '<section class="sheds-hunt__block"><h3 class="sheds-hunt__k">Why</h3><ul class="sheds-hunt__why">';
       hunt.why.forEach(function (line) {
@@ -572,7 +693,6 @@
       html += '<section class="sheds-hunt__block"><h3 class="sheds-hunt__k">Watch</h3><p>' +
         escapeHtml(hunt.watch) + "</p></section>";
     }
-    html += '<p class="sheds-hunt__season">Season: ' + escapeHtml(hunt.season && hunt.season.label) + "</p>";
     if (hunt.rated && hunt.support && hunt.support.locationLine) {
       html += '<p class="sheds-hunt__support">' + escapeHtml(hunt.support.locationLine) + "</p>";
     } else if (hunt.status === "not_rated" && hunt.support && hunt.support.locationLine) {

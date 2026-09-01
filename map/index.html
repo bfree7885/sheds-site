@@ -60,10 +60,45 @@
           <p class="sheds-inspect-hud__lede">Search priority and terrain — not a claim that deer or antlers are here.</p>
           <pre class="sheds-inspect-hud__body" id="inspect-body"></pre>
           <p class="sheds-inspect-hud__note" id="inspect-field-note"></p>
+          <div class="sheds-inspect-hud__actions" id="inspect-scout-actions" hidden>
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-save-scout-spot">Save Scout Spot</button>
+            <p class="sheds-note" id="inspect-scout-status" hidden></p>
+          </div>
           <details class="sheds-inspect-hud__more" id="inspect-more">
             <summary class="sheds-inspect-hud__more-toggle">Why this may matter and limits</summary>
             <pre class="sheds-inspect-hud__more-body" id="inspect-more-body"></pre>
           </details>
+        </div>
+        <div class="sheds-scout-hud" id="scout-hud" hidden role="dialog" aria-label="Scout Spot field planning" aria-live="polite">
+          <div class="sheds-inspect-hud__head">
+            <p class="sheds-inspect-hud__kicker">Scout Spot</p>
+            <button type="button" class="sheds-btn sheds-btn--ghost sheds-inspect-hud__close" id="btn-scout-close">Done</button>
+          </div>
+          <p class="sheds-inspect-hud__lede">Candidate search location — field planning, not a claim that sheds are here.</p>
+          <label class="sheds-scout-hud__label" for="scout-name">Name</label>
+          <input class="sheds-scout-hud__input" id="scout-name" type="text" maxlength="80" autocomplete="off" enterkeyhint="done">
+          <p class="sheds-scout-hud__label" id="scout-status-label">Status</p>
+          <div class="sheds-scout-status" role="radiogroup" aria-labelledby="scout-status-label">
+            <button type="button" class="sheds-scout-status__btn" data-scout-status="Plan" aria-pressed="true">Plan</button>
+            <button type="button" class="sheds-scout-status__btn" data-scout-status="Checked" aria-pressed="false">Checked</button>
+            <button type="button" class="sheds-scout-status__btn" data-scout-status="Revisit" aria-pressed="false">Revisit</button>
+          </div>
+          <pre class="sheds-inspect-hud__body" id="scout-body"></pre>
+          <section class="sheds-scout-hud__block" aria-labelledby="scout-saved-heading">
+            <h3 class="sheds-scout-hud__h" id="scout-saved-heading">Saved context</h3>
+            <p class="sheds-scout-hud__meta" id="scout-saved-when"></p>
+            <p class="sheds-scout-hud__copy" id="scout-saved-body"></p>
+          </section>
+          <section class="sheds-scout-hud__block" aria-labelledby="scout-today-heading">
+            <h3 class="sheds-scout-hud__h" id="scout-today-heading">Today</h3>
+            <p class="sheds-scout-hud__copy" id="scout-today-body"></p>
+          </section>
+          <label class="sheds-scout-hud__label" for="scout-note">Note</label>
+          <textarea class="sheds-scout-hud__note" id="scout-note" maxlength="400" rows="2" enterkeyhint="done" placeholder="Optional — search effort only"></textarea>
+          <p class="sheds-inspect-hud__note" id="scout-field-note">Use the terrain as a search guide, not evidence that sheds are present.</p>
+          <div class="sheds-inspect-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-scout-delete">Delete</button>
+          </div>
         </div>
       </div>
 
@@ -112,6 +147,7 @@
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--search" aria-hidden="true"></span><span><strong>SEARCH</strong> — area you chose to analyze</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--target" aria-hidden="true"></span><span><strong>AREA TO INSPECT</strong> — model suggestion, not an antler pin</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--obs" aria-hidden="true"></span><span><strong>OBS</strong> — something you recorded</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--scout" aria-hidden="true"></span><span><strong>SCOUT</strong> — a candidate search location you saved</span></li>
         </ul>
         <p class="sheds-note">These stay separate on purpose.</p>
       </div>
@@ -311,6 +347,7 @@
       <div class="sheds-tools-grid">
         <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-plan">Field Plan</button>
         <button type="button" class="sheds-btn" id="btn-my-areas">My Search Areas</button>
+        <button type="button" class="sheds-btn" id="btn-scout-spots">Scout Spots</button>
         <button type="button" class="sheds-btn" id="btn-save-area">Save Search Area</button>
         <button type="button" class="sheds-btn" id="btn-add-obs">Add note</button>
         <button type="button" class="sheds-btn" id="btn-layers" aria-controls="sheet-controls">Map &amp; layers</button>
@@ -351,6 +388,19 @@
       <h2 class="sheds-sheet__title" id="areas-title">My Search Areas</h2>
       <p class="sheds-sheet__lede">Private on this device. Opening restores SEARCH — not YOU. These are not hotspots or find probabilities.</p>
       <ul class="sheds-area-list" id="areas-list"></ul>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scout Spots list -->
+  <div class="sheds-sheet" id="sheet-scout-spots" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="scout-spots-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="scout-spots-title">Scout Spots</h2>
+      <p class="sheds-sheet__lede">Candidate search locations saved from Inspect. Private on this device. Terrain search guidance only — not a find claim.</p>
+      <ul class="sheds-area-list" id="scout-spots-list"></ul>
       <div class="sheds-actions">
         <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
       </div>
@@ -861,6 +911,7 @@
   <script src="../js/sheds-map-field-tools.js"></script>
   <script src="../js/sheds-inspect-intel.js"></script>
   <script src="../js/sheds-search-priority.js"></script>
+  <script src="../js/sheds-scout-spot-store.js"></script>
   <script src="../js/sheds-import-json.js"></script>
   <script src="../js/sheds-map-app.js"></script>
 </body>

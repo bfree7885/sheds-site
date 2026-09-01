@@ -26,6 +26,7 @@
   var HabitatGis = window.WaypointShedsHabitatGis;
   var SglOverlay = window.WaypointShedsSglOverlay;
   var AreaStore = window.WaypointShedsSearchAreaStore;
+  var ScoutStore = window.WaypointShedsScoutSpots;
   var FieldPlan = window.WaypointShedsFieldPlan;
   var FieldUi = window.WaypointShedsFieldUi;
   var Ux = window.WaypointShedsUxPolish;
@@ -126,11 +127,12 @@
     searchAreasFetchGen: 0,
     searchAreasTimer: null,
     searchAreasStatus: "idle",
-    lastSearchAreasGrid: null
+    lastSearchAreasGrid: null,
+    scoutSpotId: null
   };
 
   var els = {};
-  var map, heatLayer, userMarker, accuracyCircle, headingLine, obsLayer, clickLatLng;
+  var map, heatLayer, userMarker, accuracyCircle, headingLine, obsLayer, scoutLayer, clickLatLng;
   var trackLayer, coverageLayer, planLayer, recMarker, trackLine;
   var searchLayer, sglLayerGroup;
   var basemapsBundle = null;
@@ -462,6 +464,10 @@
     var el = $("today-hunt");
     if (!el || !TodayHunt) return;
     TodayHunt.fillHuntRoot(el, hunt, { includeQuestion: false });
+    if (state.scoutSpotId && ScoutStore) {
+      var open = ScoutStore.getById(state.scoutSpotId);
+      if (open) renderScoutHud(open);
+    }
   }
 
   function currentHeatFilters() {
@@ -1360,6 +1366,7 @@
     }, 2500);
 
     obsLayer = L.layerGroup().addTo(map);
+    scoutLayer = L.layerGroup().addTo(map);
     coverageLayer = L.layerGroup().addTo(map);
     trackLayer = L.layerGroup().addTo(map);
     planLayer = L.layerGroup().addTo(map);
@@ -1489,6 +1496,201 @@
 
   function updateObsCount(n) {
     if (els.obsCount) els.obsCount.textContent = String(n) + " private observation" + (n === 1 ? "" : "s");
+  }
+
+  function scoutMarkHtml(spot, open) {
+    var status = (spot && spot.status) || "Plan";
+    return "<span class=\"sheds-scout-mark" + (open ? " is-open" : "") +
+      "\" data-status=\"" + escapeHtml(status) + "\" title=\"" +
+      escapeHtml((spot && spot.name) || "Scout Spot") + "\"></span>";
+  }
+
+  function closeScoutHud() {
+    state.scoutSpotId = null;
+    var hud = $("scout-hud");
+    if (hud) hud.setAttribute("hidden", "");
+    var shell = document.getElementById("sheds-map-shell");
+    if (shell) shell.classList.remove("is-scouting");
+    if (scoutLayer) refreshScoutSpots();
+    syncSearchPrompt();
+  }
+
+  function formatScoutTerrainBody(spot) {
+    var t = (spot && spot.terrain) || {};
+    var lines = [];
+    if (t.available && t.searchPriority) {
+      lines.push("Search priority: " + t.searchPriority);
+    } else {
+      lines.push("Terrain intelligence unavailable at save");
+      if (t.status && t.status !== "unavailable") lines.push("Status: " + t.status);
+    }
+    lines.push("");
+    lines.push("Terrain");
+    if (t.featureLabel) lines.push(String(t.featureLabel).replace(/\.$/, ""));
+    var bits = [];
+    if (typeof t.slopeDeg === "number") bits.push("slope " + t.slopeDeg + "°");
+    if (t.aspectCardinal) bits.push(t.aspectCardinal + "-facing");
+    if (typeof t.elevM === "number") {
+      bits.push("~" + Math.round(t.elevM) + " m (" + Math.round(t.elevM * 3.28084) + " ft)");
+    }
+    if (bits.length) lines.push(bits.join(" · "));
+    else if (!t.available) lines.push("No slope, aspect, or elevation was stored.");
+    lines.push("");
+    lines.push("Why");
+    if (t.why && t.why.length) {
+      t.why.forEach(function (w) { lines.push("• " + w); });
+    } else {
+      lines.push("• Terrain context was limited when this Scout Spot was saved.");
+    }
+    return lines.join("\n");
+  }
+
+  function formatWhen(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return String(iso);
+    try {
+      return d.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    } catch (e) {
+      return String(iso);
+    }
+  }
+
+  function renderScoutHud(spot) {
+    if (!spot) return;
+    var nameEl = $("scout-name");
+    var noteEl = $("scout-note");
+    var body = $("scout-body");
+    var savedWhen = $("scout-saved-when");
+    var savedBody = $("scout-saved-body");
+    var todayBody = $("scout-today-body");
+    var fieldNote = $("scout-field-note");
+    if (nameEl && document.activeElement !== nameEl) nameEl.value = spot.name || "";
+    if (noteEl && document.activeElement !== noteEl) noteEl.value = spot.note || "";
+    if (body) body.textContent = formatScoutTerrainBody(spot);
+    document.querySelectorAll("[data-scout-status]").forEach(function (btn) {
+      btn.setAttribute("aria-pressed", btn.getAttribute("data-scout-status") === spot.status ? "true" : "false");
+    });
+    if (ScoutStore) {
+      var saved = ScoutStore.formatSavedContext(spot.savedToday);
+      if (savedWhen) {
+        savedWhen.textContent = saved.capturedAt ? ("Saved " + formatWhen(saved.capturedAt)) : "";
+      }
+      if (savedBody) {
+        savedBody.textContent = saved.lines.concat(saved.disclaimer ? [saved.disclaimer] : []).join("\n");
+      }
+      var live = ScoutStore.formatLiveToday(state.lastHunt);
+      if (todayBody) {
+        todayBody.textContent = live.lines.concat(live.disclaimer ? [live.disclaimer] : []).join("\n");
+      }
+    }
+    if (fieldNote) fieldNote.textContent = (ScoutStore && ScoutStore.FIELD_NOTE) ||
+      "Use the terrain as a search guide, not evidence that sheds are present.";
+  }
+
+  function openScoutSpot(id) {
+    if (!ScoutStore) return;
+    var spot = ScoutStore.getById(id);
+    if (!spot) return;
+    stopMeasureMode();
+    stopInspectMode();
+    closeAllSheets();
+    state.scoutSpotId = id;
+    renderScoutHud(spot);
+    var hud = $("scout-hud");
+    if (hud) hud.removeAttribute("hidden");
+    var shell = document.getElementById("sheds-map-shell");
+    if (shell) shell.classList.add("is-scouting");
+    var prompt = $("search-prompt");
+    if (prompt) prompt.setAttribute("hidden", "");
+    refreshScoutSpots();
+    if (map && spot.location) {
+      try {
+        var z = map.getZoom();
+        if (z < 12) map.setView([spot.location.lat, spot.location.lng], 13, { animate: false });
+        else map.panTo([spot.location.lat, spot.location.lng], { animate: false });
+      } catch (e) { /* */ }
+    }
+  }
+
+  function refreshScoutSpots() {
+    if (!scoutLayer) return;
+    scoutLayer.clearLayers();
+    if (!ScoutStore) return;
+    var spots = ScoutStore.list();
+    spots.forEach(function (spot) {
+      if (!spot || !spot.location) return;
+      var open = state.scoutSpotId === spot.id;
+      var icon = L.divIcon({
+        className: "leaflet-div-icon sheds-scout-icon",
+        html: scoutMarkHtml(spot, open),
+        iconSize: open ? [18, 18] : [16, 16],
+        iconAnchor: open ? [9, 9] : [8, 8]
+      });
+      var m = L.marker([spot.location.lat, spot.location.lng], {
+        icon: icon,
+        keyboard: true,
+        title: (spot.name || "Scout Spot") + " · " + (spot.status || "Plan"),
+        zIndexOffset: open ? 400 : 120
+      });
+      m.on("click", function (ev) {
+        L.DomEvent.stopPropagation(ev);
+        openScoutSpot(spot.id);
+      });
+      scoutLayer.addLayer(m);
+    });
+    refreshScoutList();
+  }
+
+  function refreshScoutList() {
+    var list = $("scout-spots-list");
+    if (!list || !ScoutStore) return;
+    var spots = ScoutStore.list();
+    if (!spots.length) {
+      list.innerHTML = "<li class=\"sheds-note\">No Scout Spots yet. Inspect a place, then Save Scout Spot.</li>";
+      return;
+    }
+    list.innerHTML = spots.map(function (s) {
+      var pri = s.terrain && s.terrain.searchPriority ? s.terrain.searchPriority : "unrated terrain";
+      return "<li><button type=\"button\" class=\"sheds-btn\" data-open-scout=\"" +
+        escapeHtml(s.id) + "\">" + escapeHtml(s.name) +
+        " · " + escapeHtml(s.status) +
+        " · " + escapeHtml(pri) + "</button></li>";
+    }).join("");
+    list.querySelectorAll("[data-open-scout]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        closeSheetQuiet($("sheet-scout-spots"));
+        openScoutSpot(btn.getAttribute("data-open-scout"));
+      });
+    });
+  }
+
+  function saveScoutSpotFromInspect() {
+    var statusEl = $("inspect-scout-status");
+    function setMsg(text, show) {
+      if (!statusEl) return;
+      statusEl.textContent = text || "";
+      statusEl.hidden = !show;
+    }
+    if (!ScoutStore || !state.inspectLatLng) {
+      setMsg("Inspect a map location first.", true);
+      return;
+    }
+    var priority = state.inspectPriority || buildInspectPriority();
+    var hunt = state.lastHunt || refreshTodayHunt();
+    var result = ScoutStore.create({
+      location: { lat: state.inspectLatLng.lat, lng: state.inspectLatLng.lng },
+      terrain: ScoutStore.terrainFromPriority(priority),
+      savedToday: ScoutStore.snapshotFromHunt(hunt),
+      status: "Plan"
+    });
+    if (!result.ok) {
+      setMsg(result.error || "Could not save Scout Spot.", true);
+      return;
+    }
+    setMsg("", false);
+    refreshScoutSpots();
+    openScoutSpot(result.spot.id);
   }
 
   function scheduleRecompute(ms) {
@@ -3000,6 +3202,7 @@
       els.sheetValidate,
       els.sheetTools,
       $("sheet-areas"),
+      $("sheet-scout-spots"),
       $("sheet-save-area"),
       $("sheet-field-plan"),
       $("sheet-session-summary")
@@ -3576,6 +3779,7 @@
   }
 
   function startMeasureMode() {
+    closeScoutHud();
     stopInspectMode({ silent: true });
     state.measureActive = true;
     state.measurePoints = [];
@@ -3637,11 +3841,14 @@
     }
     var hud = $("inspect-hud");
     if (hud && !opts.keepHud) hud.setAttribute("hidden", "");
+    var scoutActions = $("inspect-scout-actions");
+    if (scoutActions && !opts.keepHud) scoutActions.setAttribute("hidden", "");
     shellModeClass(state.measureActive, false);
     if (!state.measureActive) syncSearchPrompt();
   }
 
   function armInspectMode() {
+    closeScoutHud();
     stopMeasureMode();
     state.inspectArmed = true;
     shellModeClass(false, true);
@@ -3653,6 +3860,8 @@
       hud.classList.remove("is-expanded");
       hud.removeAttribute("hidden");
     }
+    var scoutActions = $("inspect-scout-actions");
+    if (scoutActions) scoutActions.setAttribute("hidden", "");
     var more = $("inspect-more");
     if (more) {
       more.open = false;
@@ -3819,6 +4028,11 @@
       more.hidden = !String(moreText).trim();
     }
     hud.removeAttribute("hidden");
+    var scoutActions = $("inspect-scout-actions");
+    if (scoutActions) {
+      if (state.inspectLatLng) scoutActions.removeAttribute("hidden");
+      else scoutActions.setAttribute("hidden", "");
+    }
     syncSearchPrompt();
   }
 
@@ -3975,6 +4189,8 @@
     state.inspectReport = null;
     state.inspectPriority = null;
     shellModeClass(false, true);
+    var scoutActions = $("inspect-scout-actions");
+    if (scoutActions) scoutActions.removeAttribute("hidden");
     var hud = $("inspect-hud");
     var more = $("inspect-more");
     if (more) {
@@ -4212,6 +4428,62 @@
         openSheet($("sheet-areas"));
       });
     }
+    if ($("btn-scout-spots")) {
+      $("btn-scout-spots").addEventListener("click", function () {
+        closeAllSheets();
+        refreshScoutList();
+        openSheet($("sheet-scout-spots"));
+      });
+    }
+    if ($("btn-save-scout-spot")) {
+      $("btn-save-scout-spot").addEventListener("click", function () {
+        saveScoutSpotFromInspect();
+      });
+    }
+    if ($("btn-scout-close")) {
+      $("btn-scout-close").addEventListener("click", function () {
+        closeScoutHud();
+      });
+    }
+    if ($("btn-scout-delete")) {
+      $("btn-scout-delete").addEventListener("click", function () {
+        if (!ScoutStore || !state.scoutSpotId) return;
+        if (!window.confirm("Delete this Scout Spot from this device? This does not delete map terrain.")) return;
+        ScoutStore.remove(state.scoutSpotId);
+        closeScoutHud();
+        refreshScoutSpots();
+      });
+    }
+    if ($("scout-name")) {
+      $("scout-name").addEventListener("change", function () {
+        if (!ScoutStore || !state.scoutSpotId) return;
+        var result = ScoutStore.rename(state.scoutSpotId, $("scout-name").value);
+        if (result.ok) {
+          renderScoutHud(result.spot);
+          refreshScoutSpots();
+        } else {
+          var current = ScoutStore.getById(state.scoutSpotId);
+          if (current) $("scout-name").value = current.name || "";
+        }
+      });
+    }
+    if ($("scout-note")) {
+      $("scout-note").addEventListener("change", function () {
+        if (!ScoutStore || !state.scoutSpotId) return;
+        var result = ScoutStore.setNote(state.scoutSpotId, $("scout-note").value);
+        if (result.ok) renderScoutHud(result.spot);
+      });
+    }
+    document.querySelectorAll("[data-scout-status]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (!ScoutStore || !state.scoutSpotId) return;
+        var result = ScoutStore.setStatus(state.scoutSpotId, btn.getAttribute("data-scout-status"));
+        if (result.ok) {
+          renderScoutHud(result.spot);
+          refreshScoutSpots();
+        }
+      });
+    });
     if ($("btn-field-plan")) {
       $("btn-field-plan").addEventListener("click", function () {
         closeAllSheets();
@@ -4270,12 +4542,13 @@
         observations: Store.exportJson(),
         sessions: Sessions ? Sessions.exportBundle() : null,
         searchAreas: AreaStore ? AreaStore.exportJson() : null,
+        scoutSpots: ScoutStore ? ScoutStore.exportJson() : null,
         validations: Validation ? Validation.list() : [],
         finds: window.WaypointSheds && WaypointSheds.listFinds ? WaypointSheds.listFinds() : [],
         modelPrefs: state.prefs,
         modelStamp: modelStamp(),
         privacyNote:
-          "Observations, sessions, and validations were stored on-device. " +
+          "Observations, sessions, Scout Spots, and validations were stored on-device. " +
           "Tile/weather providers may have received approximate map/request location during use."
       };
       var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -4315,14 +4588,16 @@
           }
           try { refreshObservations(); } catch (e1) { /* map may not be ready */ }
           try { refreshAreasList(); } catch (e2) { /* */ }
+          try { refreshScoutSpots(); } catch (eScout) { /* */ }
           try { scheduleRecompute(80); } catch (e3) { /* */ }
           var c = result.counts || {};
           var obs = (c.observations && c.observations.added) || 0;
           var areas = (c.searchAreas && c.searchAreas.added) || 0;
+          var spots = (c.scoutSpots && c.scoutSpots.added) || 0;
           var sess = (c.sessions && c.sessions.added) || 0;
           window.alert(
             "Imported private field records into this browser only. " +
-              "Added " + obs + " notes, " + areas + " search areas, " + sess + " sessions. " +
+              "Added " + obs + " notes, " + areas + " search areas, " + spots + " Scout Spots, " + sess + " sessions. " +
               "Same-id records were replaced. This does not prove a find or copy data from another website."
           );
           closeAllSheets();
@@ -4338,7 +4613,10 @@
     });
 
     document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeAllSheets();
+      if (e.key === "Escape") {
+        closeAllSheets();
+        closeScoutHud();
+      }
     });
 
     $("obs-type").addEventListener("change", function () {
@@ -4662,6 +4940,7 @@
     bindControls();
     syncControlsForm();
     refreshObservations();
+    refreshScoutSpots();
     refreshCoverageMarks();
     updateSeasonPill();
     var active = Sessions.getActiveSession();
@@ -4701,6 +4980,16 @@
       if (heatLayer && heatLayer.setSmooth) heatLayer.setSmooth(false);
     }
   }
+
+  try {
+    window.WaypointShedsMapApp = {
+      saveScoutSpotFromInspect: saveScoutSpotFromInspect,
+      openScoutSpot: openScoutSpot,
+      closeScoutHud: closeScoutHud,
+      refreshScoutSpots: refreshScoutSpots,
+      inspectAt: showInspectAt
+    };
+  } catch (eApi) { /* */ }
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);

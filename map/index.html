@@ -97,7 +97,52 @@
           <textarea class="sheds-scout-hud__note" id="scout-note" maxlength="400" rows="2" enterkeyhint="done" placeholder="Optional — search effort only"></textarea>
           <p class="sheds-inspect-hud__note" id="scout-field-note">Use the terrain as a search guide, not evidence that sheds are present.</p>
           <div class="sheds-inspect-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-scout-add-plan">Add to Hunt Plan</button>
             <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-scout-delete">Delete</button>
+          </div>
+        </div>
+        <div class="sheds-hunt-select-hud" id="hunt-select-hud" hidden role="status" aria-live="polite">
+          <p class="sheds-inspect-hud__kicker">Hunt Plan</p>
+          <p class="sheds-hunt-select-hud__lede">Tap Scout Spots to include. Order is the order you tap — intended search sequence, not a route.</p>
+          <p class="sheds-hunt-select-hud__count" id="hunt-select-count">0 Scout Spots selected</p>
+          <div class="sheds-inspect-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-select-create">Create Hunt Plan</button>
+            <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-hunt-select-cancel">Cancel</button>
+          </div>
+        </div>
+        <div class="sheds-scout-hud sheds-hunt-plan-hud" id="hunt-plan-hud" hidden role="dialog" aria-label="Hunt Plan field planning" aria-live="polite">
+          <div class="sheds-inspect-hud__head">
+            <p class="sheds-inspect-hud__kicker">Hunt Plan</p>
+            <button type="button" class="sheds-btn sheds-btn--ghost sheds-inspect-hud__close" id="btn-hunt-plan-close">Done</button>
+          </div>
+          <p class="sheds-inspect-hud__lede">Private field plan of candidate locations — not a route and not a claim that sheds are here.</p>
+          <label class="sheds-scout-hud__label" for="hunt-plan-name">Name</label>
+          <input class="sheds-scout-hud__input" id="hunt-plan-name" type="text" maxlength="80" autocomplete="off" enterkeyhint="done">
+          <p class="sheds-scout-hud__label" id="hunt-plan-status-label">Status</p>
+          <div class="sheds-scout-status sheds-hunt-plan-status" role="radiogroup" aria-labelledby="hunt-plan-status-label">
+            <button type="button" class="sheds-scout-status__btn" data-hunt-plan-status="Planned" aria-pressed="true">Planned</button>
+            <button type="button" class="sheds-scout-status__btn" data-hunt-plan-status="Active" aria-pressed="false">Active</button>
+            <button type="button" class="sheds-scout-status__btn" data-hunt-plan-status="Completed" aria-pressed="false">Completed</button>
+          </div>
+          <section class="sheds-scout-hud__block" aria-labelledby="hunt-plan-list-heading">
+            <h3 class="sheds-scout-hud__h" id="hunt-plan-list-heading">Plan</h3>
+            <p class="sheds-hunt-plan-hud__count" id="hunt-plan-count"></p>
+            <ol class="sheds-hunt-plan-list" id="hunt-plan-list"></ol>
+            <p class="sheds-hunt-plan-hud__dist" id="hunt-plan-distance"></p>
+          </section>
+          <section class="sheds-scout-hud__block" aria-labelledby="hunt-plan-today-heading">
+            <h3 class="sheds-scout-hud__h" id="hunt-plan-today-heading">Current conditions</h3>
+            <p class="sheds-scout-hud__copy" id="hunt-plan-today-body"></p>
+          </section>
+          <section class="sheds-scout-hud__block" aria-labelledby="hunt-plan-saved-heading">
+            <h3 class="sheds-scout-hud__h" id="hunt-plan-saved-heading">Saved Scout Spot context</h3>
+            <p class="sheds-scout-hud__copy" id="hunt-plan-saved-body">Terrain and saved Today stay on each Scout Spot. This Hunt Plan does not copy them.</p>
+          </section>
+          <label class="sheds-scout-hud__label" for="hunt-plan-note">Note</label>
+          <textarea class="sheds-scout-hud__note" id="hunt-plan-note" maxlength="400" rows="2" enterkeyhint="done" placeholder="Optional — search effort only"></textarea>
+          <p class="sheds-inspect-hud__note" id="hunt-plan-field-note">A Hunt Plan is an intended search sequence of candidate locations — not a route and not evidence that sheds are present.</p>
+          <div class="sheds-inspect-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-hunt-plan-delete">Delete Hunt Plan</button>
           </div>
         </div>
       </div>
@@ -148,6 +193,7 @@
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--target" aria-hidden="true"></span><span><strong>AREA TO INSPECT</strong> — model suggestion, not an antler pin</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--obs" aria-hidden="true"></span><span><strong>OBS</strong> — something you recorded</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--scout" aria-hidden="true"></span><span><strong>SCOUT</strong> — a candidate search location you saved</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--plan" aria-hidden="true"></span><span><strong>PLAN</strong> — numbered order in an open Hunt Plan (sequence, not a route)</span></li>
         </ul>
         <p class="sheds-note">These stay separate on purpose.</p>
       </div>
@@ -348,6 +394,7 @@
         <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-plan">Field Plan</button>
         <button type="button" class="sheds-btn" id="btn-my-areas">My Search Areas</button>
         <button type="button" class="sheds-btn" id="btn-scout-spots">Scout Spots</button>
+        <button type="button" class="sheds-btn" id="btn-hunt-plans">Hunt Plans</button>
         <button type="button" class="sheds-btn" id="btn-save-area">Save Search Area</button>
         <button type="button" class="sheds-btn" id="btn-add-obs">Add note</button>
         <button type="button" class="sheds-btn" id="btn-layers" aria-controls="sheet-controls">Map &amp; layers</button>
@@ -402,7 +449,54 @@
       <p class="sheds-sheet__lede">Candidate search locations saved from Inspect. Private on this device. Terrain search guidance only — not a find claim.</p>
       <ul class="sheds-area-list" id="scout-spots-list"></ul>
       <div class="sheds-actions">
-        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-scout-create-plan">Create Hunt Plan</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hunt Plans list -->
+  <div class="sheds-sheet" id="sheet-hunt-plans" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hunt-plans-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="hunt-plans-title">Hunt Plans</h2>
+      <p class="sheds-sheet__lede">Private on this device. Ordered Scout Spots you intend to check — not a route and not a find claim.</p>
+      <ul class="sheds-area-list" id="hunt-plans-list"></ul>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-plans-create">Create Hunt Plan</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Name a new Hunt Plan -->
+  <div class="sheds-sheet" id="sheet-hunt-plan-name" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hunt-plan-name-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="hunt-plan-name-title">Name this Hunt Plan</h2>
+      <p class="sheds-sheet__lede">A private intended search sequence. Not an optimized route.</p>
+      <div class="sheds-field">
+        <label for="hunt-plan-name-input">Name</label>
+        <input id="hunt-plan-name-input" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Saturday south benches">
+      </div>
+      <p class="sheds-note" id="hunt-plan-name-meta"></p>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-plan-name-save">Save Hunt Plan</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Choose a Hunt Plan to add a Scout Spot -->
+  <div class="sheds-sheet" id="sheet-choose-hunt-plan" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="choose-hunt-plan-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="choose-hunt-plan-title">Add to Hunt Plan</h2>
+      <p class="sheds-sheet__lede">The Scout Spot stays one record. It can belong to more than one Hunt Plan.</p>
+      <ul class="sheds-area-list" id="choose-hunt-plan-list"></ul>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-choose-plan-new">New Hunt Plan</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
       </div>
     </div>
   </div>
@@ -912,6 +1006,7 @@
   <script src="../js/sheds-inspect-intel.js"></script>
   <script src="../js/sheds-search-priority.js"></script>
   <script src="../js/sheds-scout-spot-store.js"></script>
+  <script src="../js/sheds-hunt-plan-store.js"></script>
   <script src="../js/sheds-import-json.js"></script>
   <script src="../js/sheds-map-app.js"></script>
 </body>

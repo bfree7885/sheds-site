@@ -402,6 +402,10 @@
     if (!persist(all)) {
       return { ok: false, error: "Could not update storage." };
     }
+    var HuntPlans = global.WaypointShedsHuntPlans;
+    if (HuntPlans && typeof HuntPlans.removeSpotFromAll === "function") {
+      HuntPlans.removeSpotFromAll(id);
+    }
     return { ok: true, deletedId: id };
   }
 

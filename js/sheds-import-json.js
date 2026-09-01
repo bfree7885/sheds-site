@@ -30,6 +30,7 @@
     if (Array.isArray(obj.coverage)) coverage = obj.coverage;
     var searchAreas = unwrap(obj.searchAreas, "searchAreas");
     var scoutSpots = unwrap(obj.scoutSpots, "scoutSpots");
+    var huntPlans = unwrap(obj.huntPlans, "huntPlans");
     var validations = unwrap(obj.validations, "validations");
     if (!validations.length && Array.isArray(obj.validations)) validations = obj.validations;
     var finds = unwrap(obj.finds, "finds");
@@ -39,6 +40,7 @@
       coverage.length ||
       searchAreas.length ||
       scoutSpots.length ||
+      huntPlans.length ||
       validations.length ||
       finds.length ||
       (obj.modelPrefs && typeof obj.modelPrefs === "object");
@@ -52,6 +54,7 @@
       coverage: coverage,
       searchAreas: searchAreas,
       scoutSpots: scoutSpots,
+      huntPlans: huntPlans,
       validations: validations,
       finds: finds,
       modelPrefs: obj.modelPrefs && typeof obj.modelPrefs === "object" ? obj.modelPrefs : null
@@ -65,6 +68,7 @@
     var Sessions = global.WaypointShedsSessions;
     var AreaStore = global.WaypointShedsSearchAreaStore;
     var ScoutStore = global.WaypointShedsScoutSpots;
+    var HuntPlans = global.WaypointShedsHuntPlans;
     var Validation = global.WaypointShedsValidation;
     var Finds = global.WaypointSheds;
 
@@ -82,6 +86,9 @@
     }
     if (ScoutStore && ScoutStore.importList) {
       counts.scoutSpots = ScoutStore.importList(parsed.scoutSpots);
+    }
+    if (HuntPlans && HuntPlans.importList) {
+      counts.huntPlans = HuntPlans.importList(parsed.huntPlans);
     }
     if (Validation && Validation.importList) {
       counts.validations = Validation.importList(parsed.validations);

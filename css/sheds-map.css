@@ -678,6 +678,177 @@ html.sheds-session-active .sheds-scout-hud {
 
 .sheds-hunt-plan-hud .sheds-inspect-hud__actions {
   margin-top: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.sheds-hunt-plan-hud .sheds-inspect-hud__actions .sheds-btn {
+  min-height: 2.75rem;
+  flex: 1 1 8rem;
+}
+
+.sheds-field-hunt-hud {
+  position: absolute;
+  z-index: 584;
+  left: calc(0.5rem + var(--sheds-safe-left));
+  right: auto;
+  top: calc(4.85rem + var(--sheds-safe-top));
+  width: min(22rem, calc(100% - 1rem - var(--sheds-safe-left) - var(--sheds-safe-right)));
+  max-height: min(58vh, 26rem);
+  overflow: hidden;
+  padding: 0.45rem 0.6rem 0.5rem;
+  border-radius: 14px;
+  border: 1px solid var(--sheds-border);
+  background: rgba(8, 18, 14, 0.92);
+  color: var(--sheds-text);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.sheds-field-hunt-hud[hidden] {
+  display: none !important;
+}
+
+.sheds-field-hunt-hud__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: rgba(8, 18, 14, 0.96);
+  margin: -0.15rem -0.15rem 0;
+  padding: 0.15rem;
+}
+
+.sheds-field-hunt-hud__head .sheds-btn {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  flex: 0 0 auto;
+}
+
+.sheds-field-hunt-hud__name,
+.sheds-field-hunt-hud__progress,
+.sheds-field-hunt-hud__spot-name,
+.sheds-field-hunt-hud__meta,
+.sheds-field-hunt-hud__dist {
+  margin: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.sheds-field-hunt-hud__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.sheds-field-hunt-hud__progress {
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.sheds-field-hunt-hud__spot {
+  min-width: 0;
+}
+
+.sheds-field-hunt-hud__spot-name {
+  font-weight: 650;
+  font-size: 0.9rem;
+}
+
+.sheds-field-hunt-hud__meta,
+.sheds-field-hunt-hud__dist {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--sheds-muted);
+}
+
+.sheds-field-hunt-hud__dist {
+  color: var(--sheds-text);
+}
+
+.sheds-field-hunt-hud__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.sheds-field-hunt-hud__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-top: 0.15rem;
+  background: rgba(8, 18, 14, 0.96);
+}
+
+.sheds-field-hunt-hud__status,
+.sheds-field-hunt-hud__nav,
+.sheds-field-hunt-hud__note-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.sheds-field-hunt-hud__touch {
+  min-height: 2.75rem;
+  min-width: 0;
+  flex: 1 1 0;
+  padding: 0 0.4rem;
+}
+
+.sheds-field-hunt-hud__honesty {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.sheds-scout-mark.is-field-active {
+  width: 18px;
+  height: 18px;
+  background: rgba(240, 193, 74, 0.42);
+  box-shadow: 0 0 0 3px rgba(240, 193, 74, 0.85), 0 0 0 5px rgba(8, 12, 10, 0.55);
+}
+
+#sheds-map-shell.is-field-hunting #search-prompt {
+  display: none;
+}
+
+#sheds-map-shell.is-field-hunting {
+  --sheds-sheet-peek: 0px;
+}
+
+#sheds-map-shell.is-field-hunting #plan-card {
+  display: none;
+}
+
+html.sheds-session-active .sheds-field-hunt-hud {
+  top: calc(7.85rem + var(--sheds-safe-top));
+}
+
+@media (max-width: 430px) {
+  .sheds-field-hunt-hud {
+    max-height: min(62vh, 24rem);
+    width: calc(100% - 1rem - var(--sheds-safe-left) - var(--sheds-safe-right));
+  }
+
+  .sheds-field-hunt-hud__honesty {
+    -webkit-line-clamp: 1;
+  }
 }
 
 #hunt-plans-list .sheds-btn,

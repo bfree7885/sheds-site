@@ -142,8 +142,41 @@
           <textarea class="sheds-scout-hud__note" id="hunt-plan-note" maxlength="400" rows="2" enterkeyhint="done" placeholder="Optional — search effort only"></textarea>
           <p class="sheds-inspect-hud__note" id="hunt-plan-field-note">A Hunt Plan is an intended search sequence of candidate locations — not a route and not evidence that sheds are present.</p>
           <div class="sheds-inspect-hud__actions">
+            <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-plan-start">Start Hunt</button>
             <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-hunt-plan-delete">Delete Hunt Plan</button>
           </div>
+        </div>
+        <div class="sheds-field-hunt-hud" id="field-hunt-hud" hidden role="dialog" aria-label="Field Hunt Mode" aria-live="polite">
+          <div class="sheds-field-hunt-hud__head">
+            <p class="sheds-inspect-hud__kicker" id="field-hunt-kicker">Hunt in progress</p>
+            <button type="button" class="sheds-btn sheds-btn--ghost sheds-inspect-hud__close" id="btn-field-hunt-finish">Finish Hunt</button>
+          </div>
+          <div class="sheds-field-hunt-hud__body">
+            <p class="sheds-field-hunt-hud__name" id="field-hunt-plan-name"></p>
+            <p class="sheds-field-hunt-hud__progress" id="field-hunt-progress"></p>
+            <section class="sheds-field-hunt-hud__spot" aria-labelledby="field-hunt-spot-heading">
+              <h3 class="sheds-scout-hud__h" id="field-hunt-spot-heading">Current Scout Spot</h3>
+              <p class="sheds-field-hunt-hud__spot-name" id="field-hunt-spot-name"></p>
+              <p class="sheds-field-hunt-hud__meta" id="field-hunt-spot-order"></p>
+              <p class="sheds-field-hunt-hud__meta" id="field-hunt-location"></p>
+              <p class="sheds-field-hunt-hud__dist" id="field-hunt-distance"></p>
+              <p class="sheds-field-hunt-hud__meta" id="field-hunt-terrain"></p>
+            </section>
+          </div>
+          <div class="sheds-field-hunt-hud__actions">
+            <div class="sheds-field-hunt-hud__status" role="group" aria-label="Scout Spot field status">
+              <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" id="btn-field-hunt-checked" data-field-hunt-status="Checked">Checked</button>
+              <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" id="btn-field-hunt-revisit" data-field-hunt-status="Revisit">Revisit</button>
+            </div>
+            <div class="sheds-field-hunt-hud__nav">
+              <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" id="btn-field-hunt-prev">Previous</button>
+              <button type="button" class="sheds-btn sheds-btn--primary sheds-field-hunt-hud__touch" id="btn-field-hunt-next">Next Spot</button>
+            </div>
+            <div class="sheds-field-hunt-hud__note-row">
+              <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" id="btn-field-hunt-note">Quick Note</button>
+            </div>
+          </div>
+          <p class="sheds-inspect-hud__note sheds-field-hunt-hud__honesty" id="field-hunt-field-note">Field Hunt Mode is working a Hunt Plan in the field — not navigation and not evidence that sheds are present.</p>
         </div>
       </div>
 
@@ -482,6 +515,24 @@
       <p class="sheds-note" id="hunt-plan-name-meta"></p>
       <div class="sheds-actions">
         <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-plan-name-save">Save Hunt Plan</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field Hunt quick note -->
+  <div class="sheds-sheet" id="sheet-field-hunt-note" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="field-hunt-note-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="field-hunt-note-title">Quick Note</h2>
+      <p class="sheds-sheet__lede">Saved on this Scout Spot. Search effort only — not a find claim.</p>
+      <div class="sheds-field">
+        <label for="field-hunt-note-input">Note</label>
+        <textarea id="field-hunt-note-input" maxlength="400" rows="4" enterkeyhint="done" placeholder="Optional — what you checked, not what you found"></textarea>
+      </div>
+      <p class="sheds-note" id="field-hunt-note-meta">Appends to the existing Scout Spot note. Checked does not mean an antler was found.</p>
+      <div class="sheds-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-hunt-note-save">Save Note</button>
         <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
       </div>
     </div>
@@ -1007,6 +1058,7 @@
   <script src="../js/sheds-search-priority.js"></script>
   <script src="../js/sheds-scout-spot-store.js"></script>
   <script src="../js/sheds-hunt-plan-store.js"></script>
+  <script src="../js/sheds-hunt-session-store.js"></script>
   <script src="../js/sheds-import-json.js"></script>
   <script src="../js/sheds-map-app.js"></script>
 </body>

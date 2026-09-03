@@ -559,6 +559,23 @@ html.sheds-session-active .sheds-scout-hud {
   content: "1";
 }
 
+.sheds-marker-legend__swatch--track {
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+  box-shadow: inset 0 0 0 0 transparent;
+  background-image: linear-gradient(90deg, #b89a62, #b89a62);
+  height: 4px;
+  width: 1rem;
+  align-self: center;
+}
+
+.sheds-marker-legend__swatch--shedfound {
+  background: #e8c547;
+  border-radius: 999px;
+  border: 2px solid rgba(8, 18, 14, 0.85);
+}
+
 .sheds-hunt-select-hud {
   position: absolute;
   z-index: 583;
@@ -695,7 +712,7 @@ html.sheds-session-active .sheds-scout-hud {
   right: auto;
   top: calc(4.85rem + var(--sheds-safe-top));
   width: min(22rem, calc(100% - 1rem - var(--sheds-safe-left) - var(--sheds-safe-right)));
-  max-height: min(58vh, 26rem);
+  max-height: min(64vh, 28rem);
   overflow: hidden;
   padding: 0.45rem 0.6rem 0.5rem;
   border-radius: 14px;
@@ -817,6 +834,277 @@ html.sheds-session-active .sheds-scout-hud {
   overflow: hidden;
 }
 
+.sheds-field-hunt-hud__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.4rem;
+  min-width: 0;
+}
+
+.sheds-field-hunt-hud__stat {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheds-field-hunt-hud__stat-k {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sheds-muted);
+}
+
+.sheds-field-hunt-obs-types {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  margin: 0 0 0.75rem;
+}
+
+.sheds-field-hunt-obs-types .sheds-btn {
+  min-height: 2.75rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sheds-hunt-track {
+  pointer-events: none;
+}
+
+.sheds-hunt-obs-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #d4c4a0;
+  border: 2px solid rgba(8, 18, 14, 0.9);
+  box-shadow: 0 0 0 1px rgba(212, 196, 160, 0.35);
+}
+
+.sheds-hunt-obs-mark--shed {
+  width: 16px;
+  height: 16px;
+  background: #e8c547;
+  border-color: rgba(8, 18, 14, 0.92);
+  box-shadow: 0 0 0 2px rgba(232, 197, 71, 0.45);
+}
+
+.sheds-hunt-obs-mark--unmapped {
+  border-radius: 2px;
+  background: #c8b89a;
+}
+
+.sheds-history-track {
+  pointer-events: none;
+}
+
+.sheds-history-obs-mark {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #9aa392;
+  border: 2px solid rgba(8, 18, 14, 0.75);
+  opacity: 0.85;
+}
+
+.sheds-history-obs-mark--shed {
+  width: 14px;
+  height: 14px;
+  background: #c9b05a;
+  border-color: rgba(8, 18, 14, 0.85);
+  box-shadow: 0 0 0 1px rgba(201, 176, 90, 0.35);
+}
+
+.sheds-marker-legend__swatch--history-track {
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+  background-image: linear-gradient(90deg, #6d7a6c, #6d7a6c);
+  height: 3px;
+  width: 1rem;
+  align-self: center;
+  opacity: 0.7;
+}
+
+.sheds-sheet__panel--history {
+  max-height: min(78vh, 640px);
+}
+
+.sheds-sheet__panel--history .sheds-sheet__title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-top: 0;
+  padding-top: 0.15rem;
+  padding-bottom: 0.35rem;
+  background: var(--sheds-surface-solid);
+}
+
+.sheds-history-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+}
+
+.sheds-history-tabs__btn {
+  min-height: 2.75rem;
+}
+
+.sheds-history-tabs__btn[aria-pressed="true"] {
+  border-color: rgba(184, 154, 98, 0.55);
+}
+
+.sheds-history-empty {
+  margin: 0 0 0.75rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--sheds-border);
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.sheds-history-empty strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.sheds-history-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.sheds-history-list > li {
+  margin: 0 0 0.4rem;
+}
+
+.sheds-history-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sheds-history-card__date {
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.sheds-history-card__plan,
+.sheds-history-card__meta {
+  font-size: 0.82rem;
+  opacity: 0.88;
+  line-height: 1.35;
+}
+
+.sheds-history-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.7rem;
+  margin: 0 0 0.75rem;
+}
+
+.sheds-history-stats div {
+  min-width: 0;
+}
+
+.sheds-history-stats dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin: 0 0 0.1rem;
+}
+
+.sheds-history-stats dd {
+  margin: 0;
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.sheds-history-obs-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.sheds-history-obs-list li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(230, 240, 200, 0.12);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.sheds-history-obs-list li:last-child {
+  border-bottom: 0;
+}
+
+.sheds-history-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sheds-history-detail-actions .sheds-btn {
+  min-height: 2.75rem;
+  flex: 1 1 8rem;
+}
+
+.sheds-history-legacy {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.88rem;
+}
+
+.sheds-history-legacy summary {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.sheds-history-legacy .sheds-tech {
+  max-height: 28vh;
+  white-space: pre-wrap;
+  overflow: auto;
+  font-size: 0.75rem;
+}
+
+#hunt-history-empty,
+#shed-found-history-empty {
+  overflow-wrap: anywhere;
+}
+
+.leaflet-popup.sheds-hunt-obs-popup .leaflet-popup-content-wrapper {
+  background: rgba(8, 18, 14, 0.96);
+  color: var(--sheds-text);
+  border-radius: 10px;
+}
+
+.leaflet-popup.sheds-hunt-obs-popup .leaflet-popup-content {
+  margin: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  min-width: 10rem;
+}
+
+.leaflet-popup.sheds-hunt-obs-popup .leaflet-popup-tip {
+  background: rgba(8, 18, 14, 0.96);
+}
+
 .sheds-scout-mark.is-field-active {
   width: 18px;
   height: 18px;
@@ -842,18 +1130,31 @@ html.sheds-session-active .sheds-field-hunt-hud {
 
 @media (max-width: 430px) {
   .sheds-field-hunt-hud {
-    max-height: min(62vh, 24rem);
+    max-height: min(66vh, 26rem);
     width: calc(100% - 1rem - var(--sheds-safe-left) - var(--sheds-safe-right));
   }
 
   .sheds-field-hunt-hud__honesty {
     -webkit-line-clamp: 1;
   }
+
+  .sheds-sheet__panel--history {
+    max-height: min(76vh, 36rem);
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .sheds-history-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem 0.5rem;
+  }
 }
 
 #hunt-plans-list .sheds-btn,
 #choose-hunt-plan-list .sheds-btn,
-#scout-spots-list .sheds-btn {
+#scout-spots-list .sheds-btn,
+#hunt-history-list .sheds-btn,
+#shed-found-history-list .sheds-btn {
   white-space: normal;
   overflow-wrap: anywhere;
   text-align: left;

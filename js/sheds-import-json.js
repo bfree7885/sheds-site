@@ -34,6 +34,7 @@
     var validations = unwrap(obj.validations, "validations");
     if (!validations.length && Array.isArray(obj.validations)) validations = obj.validations;
     var finds = unwrap(obj.finds, "finds");
+    var huntRecords = unwrap(obj.huntRecords, "huntRecords");
     var hasBody =
       observations.length ||
       sessions.length ||
@@ -41,6 +42,7 @@
       searchAreas.length ||
       scoutSpots.length ||
       huntPlans.length ||
+      huntRecords.length ||
       validations.length ||
       finds.length ||
       (obj.modelPrefs && typeof obj.modelPrefs === "object");
@@ -55,6 +57,7 @@
       searchAreas: searchAreas,
       scoutSpots: scoutSpots,
       huntPlans: huntPlans,
+      huntRecords: huntRecords,
       validations: validations,
       finds: finds,
       modelPrefs: obj.modelPrefs && typeof obj.modelPrefs === "object" ? obj.modelPrefs : null
@@ -69,6 +72,7 @@
     var AreaStore = global.WaypointShedsSearchAreaStore;
     var ScoutStore = global.WaypointShedsScoutSpots;
     var HuntPlans = global.WaypointShedsHuntPlans;
+    var HuntRecords = global.WaypointShedsHuntRecords;
     var Validation = global.WaypointShedsValidation;
     var Finds = global.WaypointSheds;
 
@@ -89,6 +93,9 @@
     }
     if (HuntPlans && HuntPlans.importList) {
       counts.huntPlans = HuntPlans.importList(parsed.huntPlans);
+    }
+    if (HuntRecords && HuntRecords.importList) {
+      counts.huntRecords = HuntRecords.importList(parsed.huntRecords);
     }
     if (Validation && Validation.importList) {
       counts.validations = Validation.importList(parsed.validations);

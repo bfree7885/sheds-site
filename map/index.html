@@ -154,6 +154,11 @@
           <div class="sheds-field-hunt-hud__body">
             <p class="sheds-field-hunt-hud__name" id="field-hunt-plan-name"></p>
             <p class="sheds-field-hunt-hud__progress" id="field-hunt-progress"></p>
+            <div class="sheds-field-hunt-hud__stats" role="group" aria-label="Hunt time and searched distance">
+              <p class="sheds-field-hunt-hud__stat" id="field-hunt-time"><span class="sheds-field-hunt-hud__stat-k">Hunt time</span> <span id="field-hunt-time-value">—</span></p>
+              <p class="sheds-field-hunt-hud__stat" id="field-hunt-searched"><span class="sheds-field-hunt-hud__stat-k">Searched distance</span> <span id="field-hunt-searched-value">—</span></p>
+            </div>
+            <p class="sheds-field-hunt-hud__meta" id="field-hunt-tracking">Location unavailable — track not recording</p>
             <section class="sheds-field-hunt-hud__spot" aria-labelledby="field-hunt-spot-heading">
               <h3 class="sheds-scout-hud__h" id="field-hunt-spot-heading">Current Scout Spot</h3>
               <p class="sheds-field-hunt-hud__spot-name" id="field-hunt-spot-name"></p>
@@ -174,6 +179,7 @@
             </div>
             <div class="sheds-field-hunt-hud__note-row">
               <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" id="btn-field-hunt-note">Quick Note</button>
+              <button type="button" class="sheds-btn sheds-btn--primary sheds-field-hunt-hud__touch" id="btn-field-hunt-obs">+ Observation</button>
             </div>
           </div>
           <p class="sheds-inspect-hud__note sheds-field-hunt-hud__honesty" id="field-hunt-field-note">Field Hunt Mode is working a Hunt Plan in the field — not navigation and not evidence that sheds are present.</p>
@@ -227,6 +233,9 @@
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--obs" aria-hidden="true"></span><span><strong>OBS</strong> — something you recorded</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--scout" aria-hidden="true"></span><span><strong>SCOUT</strong> — a candidate search location you saved</span></li>
           <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--plan" aria-hidden="true"></span><span><strong>PLAN</strong> — numbered order in an open Hunt Plan (sequence, not a route)</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--track" aria-hidden="true"></span><span><strong>SEARCHED</strong> — live Hunt Track (where this device said you traveled during the active Field Hunt)</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--history-track" aria-hidden="true"></span><span><strong>PREVIOUS SEARCH</strong> — a finished Hunt Track from Hunt History. Places you recorded searching — not a heat map or a find claim.</span></li>
+          <li><span class="sheds-marker-legend__swatch sheds-marker-legend__swatch--shedfound" aria-hidden="true"></span><span><strong>SHED FOUND</strong> — you reported finding a shed (not a prediction)</span></li>
         </ul>
         <p class="sheds-note">These stay separate on purpose.</p>
       </div>
@@ -431,7 +440,7 @@
         <button type="button" class="sheds-btn" id="btn-save-area">Save Search Area</button>
         <button type="button" class="sheds-btn" id="btn-add-obs">Add note</button>
         <button type="button" class="sheds-btn" id="btn-layers" aria-controls="sheet-controls">Map &amp; layers</button>
-        <button type="button" class="sheds-btn" id="btn-history">History</button>
+        <button type="button" class="sheds-btn" id="btn-history">Hunt History</button>
         <button type="button" class="sheds-btn" id="btn-ethics">Ethics</button>
         <button type="button" class="sheds-btn" id="btn-export">Export JSON</button>
         <button type="button" class="sheds-btn" id="btn-import">Import JSON</button>
@@ -533,6 +542,32 @@
       <p class="sheds-note" id="field-hunt-note-meta">Appends to the existing Scout Spot note. Checked does not mean an antler was found.</p>
       <div class="sheds-actions">
         <button type="button" class="sheds-btn sheds-btn--primary" id="btn-field-hunt-note-save">Save Note</button>
+        <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Field Hunt observation -->
+  <div class="sheds-sheet" id="sheet-field-hunt-obs" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="field-hunt-obs-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel">
+      <h2 class="sheds-sheet__title" id="field-hunt-obs-title">Observation</h2>
+      <p class="sheds-sheet__lede" id="field-hunt-obs-lede">What you saw. Private on this device. Not a prediction.</p>
+      <div class="sheds-field-hunt-obs-types" role="group" aria-label="Observation type">
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="shed_found">Shed Found</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="deer_sign">Deer Sign</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="trail_crossing">Trail / Crossing</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="bedding">Bedding</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="feeding">Feeding Sign</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="access_obstacle">Access / Obstacle</button>
+        <button type="button" class="sheds-btn sheds-field-hunt-hud__touch" data-field-hunt-obs="other">Other</button>
+      </div>
+      <div class="sheds-field">
+        <label for="field-hunt-obs-note">Optional note</label>
+        <textarea id="field-hunt-obs-note" maxlength="400" rows="2" enterkeyhint="done" placeholder="Optional — what you observed"></textarea>
+      </div>
+      <p class="sheds-note" id="field-hunt-obs-meta">Tap a type to save. Location is attached only when this device has a valid reading — never invented. Shed Found means you reported a find, not that the software predicted one.</p>
+      <div class="sheds-actions">
         <button type="button" class="sheds-btn" data-close-sheet>Cancel</button>
       </div>
     </div>
@@ -990,15 +1025,58 @@
     </div>
   </div>
 
-  <!-- History sheet -->
+  <!-- Hunt History (V1.8) — finished Hunt Records. Not a heat map. -->
   <div class="sheds-sheet" id="sheet-history" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="history-title">
     <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
-    <div class="sheds-sheet__panel">
-      <h2 class="sheds-sheet__title" id="history-title">Search history</h2>
-      <p class="sheds-sheet__lede">Private sessions and cumulative effort on this device. Past search does not prove an area is empty.</p>
-      <pre class="sheds-tech" id="history-body" style="max-height:50vh;white-space:pre-wrap;"></pre>
+    <div class="sheds-sheet__panel sheds-sheet__panel--history">
+      <h2 class="sheds-sheet__title" id="history-title">Hunt History</h2>
+      <p class="sheds-sheet__lede">Private completed hunts on this device. Places you recorded searching — not a prediction and not a heat map. Past search does not prove an area is empty of sheds.</p>
+      <div class="sheds-history-tabs" role="tablist" aria-label="Hunt History views">
+        <button type="button" class="sheds-btn sheds-history-tabs__btn" id="btn-history-hunts" data-history-view="hunts" aria-pressed="true">Hunts</button>
+        <button type="button" class="sheds-btn sheds-history-tabs__btn" id="btn-history-sheds" data-history-view="sheds" aria-pressed="false">Shed Found</button>
+      </div>
+      <div id="hunt-history-hunts-view">
+        <p class="sheds-history-empty" id="hunt-history-empty" hidden>
+          <strong>No hunts recorded yet</strong>
+          Finish a Field Hunt to build your private Hunt History.
+        </p>
+        <ul class="sheds-history-list" id="hunt-history-list"></ul>
+      </div>
+      <div id="hunt-history-sheds-view" hidden>
+        <p class="sheds-history-empty" id="shed-found-history-empty" hidden>
+          <strong>No Shed Found records yet</strong>
+          Shed Found is hunter-reported evidence from a finished hunt — not a prediction.
+        </p>
+        <ul class="sheds-history-list" id="shed-found-history-list"></ul>
+      </div>
+      <details class="sheds-history-legacy">
+        <summary>Earlier search sessions</summary>
+        <p class="sheds-note">Older Start Search sessions on this device. Separate from Hunt Records.</p>
+        <pre class="sheds-tech" id="history-body"></pre>
+      </details>
       <div class="sheds-actions">
-        <button type="button" class="sheds-btn" data-close-sheet>Close</button>
+        <button type="button" class="sheds-btn sheds-btn--primary" data-close-sheet>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hunt Detail (V1.8) -->
+  <div class="sheds-sheet" id="sheet-hunt-detail" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="hunt-detail-title">
+    <div class="sheds-sheet__backdrop" data-close-sheet tabindex="-1"></div>
+    <div class="sheds-sheet__panel sheds-sheet__panel--history">
+      <h2 class="sheds-sheet__title" id="hunt-detail-title">Hunt Detail</h2>
+      <p class="sheds-sheet__lede" id="hunt-detail-lede">A finished Hunt Record. Device-reported travel and hunter-entered observations — not a prediction.</p>
+      <dl class="sheds-history-stats" id="hunt-detail-stats"></dl>
+      <p class="sheds-note" id="hunt-detail-track-note"></p>
+      <section class="sheds-history-obs" aria-labelledby="hunt-detail-obs-heading">
+        <h3 class="sheds-scout-hud__h" id="hunt-detail-obs-heading">Observations</h3>
+        <ul class="sheds-history-obs-list" id="hunt-detail-obs-list"></ul>
+      </section>
+      <p class="sheds-note" id="hunt-detail-delete-status" hidden></p>
+      <div class="sheds-actions sheds-history-detail-actions">
+        <button type="button" class="sheds-btn sheds-btn--primary" id="btn-hunt-detail-map">Show on map</button>
+        <button type="button" class="sheds-btn" id="btn-hunt-detail-back">Back to History</button>
+        <button type="button" class="sheds-btn sheds-btn--ghost" id="btn-hunt-detail-delete">Delete this hunt</button>
       </div>
     </div>
   </div>
@@ -1009,7 +1087,7 @@
     <div class="sheds-sheet__panel">
       <h2 class="sheds-sheet__title" id="ethics-title">Field ethics &amp; honesty</h2>
       <ul class="sheds-ethics-list">
-        <li><strong>Privacy.</strong> GPS, Search Areas, observations, and sessions stay on-device; coordinates are not placed in share URLs or analytics. Weather/elevation queries send approximate lat/lng to Open-Meteo.</li>
+        <li><strong>Privacy.</strong> GPS, Hunt Tracks, field observations, Search Areas, and sessions stay on-device; coordinates are not placed in share URLs or analytics and are not uploaded to Waypoint. Weather/elevation queries send approximate lat/lng to Open-Meteo. Map tiles request the visible map area.</li>
         <li><strong>Property &amp; law.</strong> This map does not grant legal access. Confirm permission and local shed seasons.</li>
         <li><strong>Wildlife.</strong> Do not chase, harass, or displace wintering deer. Approach bedding notes carefully.</li>
         <li><strong>Habitat.</strong> Avoid trampling sensitive areas; leave no trash; respect closures.</li>
@@ -1059,6 +1137,8 @@
   <script src="../js/sheds-scout-spot-store.js"></script>
   <script src="../js/sheds-hunt-plan-store.js"></script>
   <script src="../js/sheds-hunt-session-store.js"></script>
+  <script src="../js/sheds-hunt-activity-store.js"></script>
+  <script src="../js/sheds-hunt-record-store.js"></script>
   <script src="../js/sheds-import-json.js"></script>
   <script src="../js/sheds-map-app.js"></script>
 </body>

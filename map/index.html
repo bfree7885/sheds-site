@@ -1068,6 +1068,11 @@
       <p class="sheds-sheet__lede" id="hunt-detail-lede">A finished Hunt Record. Device-reported travel and hunter-entered observations — not a prediction.</p>
       <dl class="sheds-history-stats" id="hunt-detail-stats"></dl>
       <p class="sheds-note" id="hunt-detail-track-note"></p>
+      <section class="sheds-history-conditions" id="hunt-detail-conditions" aria-labelledby="hunt-detail-conditions-heading">
+        <h3 class="sheds-scout-hud__h" id="hunt-detail-conditions-heading">Conditions at hunt time</h3>
+        <p class="sheds-note" id="hunt-detail-conditions-note"></p>
+        <dl class="sheds-history-stats" id="hunt-detail-conditions-stats"></dl>
+      </section>
       <section class="sheds-history-obs" aria-labelledby="hunt-detail-obs-heading">
         <h3 class="sheds-scout-hud__h" id="hunt-detail-obs-heading">Observations</h3>
         <ul class="sheds-history-obs-list" id="hunt-detail-obs-list"></ul>
@@ -1087,7 +1092,7 @@
     <div class="sheds-sheet__panel">
       <h2 class="sheds-sheet__title" id="ethics-title">Field ethics &amp; honesty</h2>
       <ul class="sheds-ethics-list">
-        <li><strong>Privacy.</strong> GPS, Hunt Tracks, field observations, Search Areas, and sessions stay on-device; coordinates are not placed in share URLs or analytics and are not uploaded to Waypoint. Weather/elevation queries send approximate lat/lng to Open-Meteo. Map tiles request the visible map area.</li>
+        <li><strong>Privacy.</strong> GPS, Hunt Tracks, field observations, Hunt Records, Condition Snapshots, Search Areas, and sessions stay on-device; coordinates are not placed in share URLs or analytics and are not uploaded to Waypoint. Weather/elevation queries send approximate lat/lng to Open-Meteo. Map tiles request the visible map area. Hunt Record IDs, notes, Shed Found, and tracks are never sent to weather providers.</li>
         <li><strong>Property &amp; law.</strong> This map does not grant legal access. Confirm permission and local shed seasons.</li>
         <li><strong>Wildlife.</strong> Do not chase, harass, or displace wintering deer. Approach bedding notes carefully.</li>
         <li><strong>Habitat.</strong> Avoid trampling sensitive areas; leave no trash; respect closures.</li>
@@ -1116,6 +1121,8 @@
   <script src="../js/sheds-habitat.js"></script>
   <script src="../js/sheds-searchability.js"></script>
   <script src="../js/sheds-weather.js"></script>
+  <script src="../js/sheds-condition-snapshot.js"></script>
+  <script src="../js/sheds-condition-service.js"></script>
   <script src="../js/sheds-today-hunt.js"></script>
   <script src="../js/sheds-confidence.js"></script>
   <script src="../js/sheds-model-presets.js"></script>

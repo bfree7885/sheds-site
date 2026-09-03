@@ -8,12 +8,13 @@
  *
  * Schema: waypoint-sheds-hunt-records-v1 (unchanged key; no heat scores)
  *
- * Persistence: localStorage remains the V1.8 store. Caps keep GPS tracks under
+ * Persistence: localStorage remains the V1.9 store. Caps keep GPS tracks under
  * a typical ~5 MB origin quota. IndexedDB is documented technical debt — do
  * not migrate until photos, offline tiles, multi-season history, or quota
  * failures make localStorage unsafe. Quota failure must not silently discard
- * the hunt being saved. Deleting a Hunt Record never deletes Scout Spots or
- * Hunt Plans.
+ * the hunt being saved: drop older finished records first, then refuse the
+ * write if even this hunt cannot fit. Deleting a Hunt Record never deletes
+ * Scout Spots or Hunt Plans.
  */
 (function (global) {
   "use strict";
@@ -178,8 +179,21 @@
       interrupted: !!raw.interrupted,
       interruptReason: raw.interruptReason || null,
       quotaWarning: raw.quotaWarning ? String(raw.quotaWarning).slice(0, 240) : null,
+      conditionSnapshot: normalizeConditionSnapshot(raw.conditionSnapshot),
       privacy: PRIVACY
     };
+  }
+
+  function normalizeConditionSnapshot(raw) {
+    if (raw == null) return undefined;
+    if (typeof raw !== "object") return undefined;
+    var Snap = global.WaypointShedsConditionSnapshot;
+    if (Snap && typeof Snap.normalize === "function") {
+      var n = Snap.normalize(raw);
+      return n || undefined;
+    }
+    if (raw.kind && String(raw.kind) !== "condition-snapshot") return undefined;
+    return raw;
   }
 
   function loadBundle() {
@@ -201,19 +215,66 @@
     }
   }
 
+  function isQuotaError(err) {
+    if (!err) return false;
+    var name = String(err.name || "");
+    var code = err.code;
+    if (name === "QuotaExceededError" || name === "NS_ERROR_DOM_QUOTA_REACHED") return true;
+    if (code === 22 || code === 1014) return true;
+    return /quota/i.test(String(err.message || ""));
+  }
+
+  function sortOldestFirst(records) {
+    return records.slice().sort(function (a, b) {
+      return String(a.finishedAt || a.startedAt || "") < String(b.finishedAt || b.startedAt || "") ? -1 : 1;
+    });
+  }
+
+  function dropOldestExcept(records, keepId) {
+    if (!records.length) return records;
+    var sorted = sortOldestFirst(records);
+    var dropIx = 0;
+    if (keepId && sorted[0] && sorted[0].huntRecordId === keepId && sorted.length > 1) dropIx = 1;
+    if (keepId && sorted.length === 1 && sorted[0].huntRecordId === keepId) return records;
+    var dropId = sorted[dropIx] && sorted[dropIx].huntRecordId;
+    if (!dropId) return records;
+    return records.filter(function (r) { return r.huntRecordId !== dropId; });
+  }
+
   function writeBundle(records, extra) {
     extra = extra || {};
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        schemaVersion: SCHEMA_VERSION,
-        huntRecords: records
-      }));
-      return { ok: true, droppedOldest: extra.droppedOldest || 0, warning: extra.warning || null };
-    } catch (e) {
-      return {
-        ok: false,
-        error: "Could not save the Hunt Record locally. Storage may be full or unavailable. The hunt was not discarded."
-      };
+    var keepId = extra.keepId || null;
+    var droppedOldest = extra.droppedOldest || 0;
+    var warning = extra.warning || null;
+    var working = records.slice();
+
+    while (true) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          schemaVersion: SCHEMA_VERSION,
+          huntRecords: working
+        }));
+        return { ok: true, droppedOldest: droppedOldest, warning: warning };
+      } catch (e) {
+        if (!isQuotaError(e) || working.length <= 1) {
+          return {
+            ok: false,
+            error: "Could not save the Hunt Record locally. Storage may be full or unavailable. The hunt was not discarded.",
+            droppedOldest: droppedOldest
+          };
+        }
+        var next = dropOldestExcept(working, keepId);
+        if (next.length >= working.length) {
+          return {
+            ok: false,
+            error: "Could not save the Hunt Record locally. Storage may be full or unavailable. The hunt was not discarded.",
+            droppedOldest: droppedOldest
+          };
+        }
+        working = next;
+        droppedOldest += 1;
+        warning = "Oldest finished Hunt Record was removed to make room. This hunt was saved.";
+      }
     }
   }
 
@@ -252,28 +313,25 @@
     var droppedOldest = 0;
     var warning = null;
     while (records.length > MAX_RECORDS) {
-      records.sort(function (a, b) {
-        return String(a.finishedAt || a.startedAt || "") < String(b.finishedAt || b.startedAt || "") ? -1 : 1;
-      });
-      var drop = records[0];
-      if (drop && drop.huntRecordId === rec.huntRecordId && records.length > 1) {
-        drop = records[1];
-        records.splice(1, 1);
-      } else {
-        records.shift();
-      }
+      var trimmed = dropOldestExcept(records, rec.huntRecordId);
+      if (trimmed.length >= records.length) break;
+      records = trimmed;
       droppedOldest += 1;
       warning = "Oldest finished Hunt Record was removed to make room. This hunt was saved.";
     }
 
-    var written = writeBundle(records, { droppedOldest: droppedOldest, warning: warning });
+    var written = writeBundle(records, {
+      droppedOldest: droppedOldest,
+      warning: warning,
+      keepId: rec.huntRecordId
+    });
     if (!written.ok) return written;
     return {
       ok: true,
       record: rec,
       replaced: replaced,
-      droppedOldest: droppedOldest,
-      warning: warning
+      droppedOldest: written.droppedOldest || 0,
+      warning: written.warning || null
     };
   }
 

@@ -248,8 +248,20 @@
       observations: observations,
       scoutSpotIdsSnapshot: clipIds(raw.scoutSpotIdsSnapshot || raw.scoutSpotIds),
       quotaWarning: raw.quotaWarning ? String(raw.quotaWarning).slice(0, 240) : null,
+      conditionSnapshot: normalizeConditionSnapshot(raw.conditionSnapshot),
       privacy: PRIVACY
     };
+  }
+
+  function normalizeConditionSnapshot(raw) {
+    if (!raw || typeof raw !== "object") return undefined;
+    var Snap = global.WaypointShedsConditionSnapshot;
+    if (Snap && typeof Snap.normalize === "function") {
+      var n = Snap.normalize(raw);
+      return n || undefined;
+    }
+    if (raw.kind && String(raw.kind) !== "condition-snapshot") return undefined;
+    return raw;
   }
 
   function loadRaw() {
@@ -540,8 +552,24 @@
       interrupted: !!opts.interrupted,
       interruptReason: opts.interruptReason || null,
       quotaWarning: activity.quotaWarning,
+      conditionSnapshot: activity.conditionSnapshot || undefined,
       privacy: PRIVACY
     };
+  }
+
+  function setConditionSnapshot(raw) {
+    var activity = loadRaw();
+    if (!activity) return { ok: false, error: "No Hunt is in progress." };
+    var snap = normalizeConditionSnapshot(raw);
+    if (!snap) return { ok: false, error: "Could not save that Condition Snapshot." };
+    var existing = activity.conditionSnapshot;
+    if (existing && existing.acquisition && existing.acquisition.status === "ok") {
+      return { ok: true, activity: activity, skipped: true };
+    }
+    activity.conditionSnapshot = snap;
+    var saved = persist(activity);
+    if (!saved.ok) return saved;
+    return { ok: true, activity: get() };
   }
 
   function observationLabel(type) {
@@ -584,6 +612,7 @@
     formatDistance: formatDistance,
     summaryFrom: summaryFrom,
     toRecord: toRecord,
+    setConditionSnapshot: setConditionSnapshot,
     observationLabel: observationLabel
   };
 })(typeof window !== "undefined" ? window : (typeof globalThis !== "undefined" ? globalThis : this));

@@ -575,6 +575,7 @@
       snowInfluence: influence,
       snowMm: snow,
       snowfallSumCm: snowfallKnown ? snow : null,
+      snowfallKnown: snowfallKnown,
       snowfallUnit: snowfallUnit,
       snowDepthKnown: picked.known,
       snowDepthM: picked.known ? picked.meters : null,

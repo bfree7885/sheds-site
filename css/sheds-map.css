@@ -1035,6 +1035,28 @@ html.sheds-session-active .sheds-scout-hud {
   overflow-wrap: anywhere;
 }
 
+.sheds-history-conditions {
+  margin: 0 0 0.7rem;
+}
+
+.sheds-history-conditions .sheds-scout-hud__h {
+  margin: 0 0 0.25rem;
+}
+
+.sheds-history-conditions .sheds-note {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.sheds-history-conditions .sheds-history-stats {
+  margin-bottom: 0;
+}
+
+.sheds-history-conditions .sheds-history-stats dd {
+  font-size: 0.86rem;
+}
+
 .sheds-history-obs-list {
   list-style: none;
   margin: 0 0 0.75rem;

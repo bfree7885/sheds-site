@@ -1,16 +1,16 @@
 /* Sheds Experience Redesign V1 — map is the product; chrome disappears */
 
 :root {
-  --sheds-bg: var(--wp-aubergine-950, #17131c);
-  --sheds-surface: rgba(8, 22, 16, 0.92);
-  --sheds-surface-solid: #0c1c15;
-  --sheds-text: #f5f8f4;
-  --sheds-muted: rgba(245, 248, 244, 0.78);
-  --sheds-accent: var(--wp-clay-bright, #c47a72);
-  --sheds-accent-deep: var(--wp-clay, #a85d52);
-  --sheds-border: rgba(210, 230, 200, 0.22);
-  --sheds-danger: #f0b8b0;
-  --sheds-info: var(--wp-slate, #7a8a9a);
+  --sheds-bg: var(--shed-forest-900, #121f18);
+  --sheds-surface: color-mix(in srgb, var(--shed-forest-800, #1a2b21) 92%, transparent);
+  --sheds-surface-solid: var(--shed-forest-800, #1a2b21);
+  --sheds-text: var(--shed-cream, #efe6d4);
+  --sheds-muted: var(--shed-cream-muted, rgba(239, 230, 212, 0.72));
+  --sheds-accent: var(--shed-terracotta, #c45a3c);
+  --sheds-accent-deep: var(--shed-terracotta-deep, #a84a32);
+  --sheds-border: rgba(239, 230, 212, 0.14);
+  --sheds-danger: #e0a898;
+  --sheds-info: var(--shed-olive-bright, #849372);
   --sheds-safe-bottom: env(safe-area-inset-bottom, 0px);
   --sheds-safe-top: env(safe-area-inset-top, 0px);
   --sheds-safe-right: env(safe-area-inset-right, 0px);
@@ -41,7 +41,7 @@ html, body {
   z-index: 10000;
   padding: 0.55rem 0.9rem;
   background: var(--sheds-accent);
-  color: #0a1410;
+  color: var(--sheds-on-accent, #efe6d4);
   font-weight: 600;
   text-decoration: none;
   border-radius: 8px;
@@ -52,7 +52,7 @@ html, body {
 .sheds-skip:focus,
 .sheds-skip:focus-visible {
   transform: translateY(0);
-  outline: 2px solid #fff;
+  outline: 2px solid var(--sheds-text, #efe6d4);
   outline-offset: 2px;
 }
 
@@ -126,7 +126,7 @@ html, body {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  border: 2px solid rgba(216, 236, 92, 0.22);
+  border: 2px solid rgba(132, 147, 114, 0.22);
   border-top-color: var(--sheds-accent);
   animation: sheds-spin 0.95s linear infinite;
 }
@@ -167,7 +167,7 @@ html, body {
   padding: 0.55rem 0.85rem;
   border-radius: 10px;
   background: rgba(14, 22, 18, 0.92);
-  border: 1px solid rgba(216, 236, 92, 0.28);
+  border: 1px solid rgba(132, 147, 114, 0.28);
   color: var(--sheds-muted);
   font-size: 0.78rem;
   line-height: 1.4;
@@ -1362,11 +1362,23 @@ html.sheds-session-active .sheds-hunt-plan-hud {
 }
 
 .sheds-hud-brand__mark {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 4px;
-  background: var(--sheds-accent);
-  box-shadow: 0 0 0 3px rgba(216, 236, 92, 0.18);
+  /* Option K ~32px tall in map HUD — full shed silhouette, no circular crop */
+  width: calc(32px * 360 / 460);
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--sheds-text, #efe6d4);
+  display: inline-grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.sheds-hud-brand__mark .sheds-brand-mark {
+  width: calc(32px * 360 / 460);
+  height: 32px;
+  color: inherit;
 }
 
 .sheds-hud-brand__name {
@@ -1642,9 +1654,9 @@ html.sheds-session-active .sheds-hunt-plan-hud {
 .sheds-fab--primary,
 .sheds-fab[aria-pressed="true"] {
   background: var(--sheds-accent);
-  color: #0a1410;
+  color: var(--sheds-on-accent, #efe6d4);
   border-color: transparent;
-  box-shadow: 0 12px 32px rgba(180, 210, 60, 0.28);
+  box-shadow: 0 12px 32px rgba(196, 90, 60, 0.28);
 }
 
 .sheds-fab--zoom {
@@ -1857,7 +1869,7 @@ html.sheds-sheet-open .sheds-search-legend {
   z-index: 570;
   margin: 0;
   border-radius: 22px 22px 0 0;
-  border: 1px solid rgba(216, 236, 92, 0.28);
+  border: 1px solid rgba(132, 147, 114, 0.28);
   border-bottom: 0;
   background:
     linear-gradient(180deg, rgba(18, 36, 26, 0.98) 0%, rgba(7, 18, 13, 0.98) 42%);
@@ -1865,7 +1877,7 @@ html.sheds-sheet-open .sheds-search-legend {
   -webkit-backdrop-filter: var(--sheds-blur);
   box-shadow:
     0 -18px 48px rgba(0, 0, 0, 0.42),
-    0 0 0 1px rgba(216, 236, 92, 0.08);
+    0 0 0 1px rgba(132, 147, 114, 0.08);
   max-height: var(--sheds-sheet-peek);
   overflow: hidden;
   transition: max-height 0.4s var(--sheds-ease);
@@ -1873,7 +1885,7 @@ html.sheds-sheet-open .sheds-search-legend {
 }
 
 .sheds-suggest[data-has-plan="true"] {
-  border-color: rgba(216, 236, 92, 0.38);
+  border-color: rgba(132, 147, 114, 0.38);
 }
 
 .sheds-suggest[data-expanded="true"] {
@@ -1973,8 +1985,8 @@ html.sheds-sheet-open .leaflet-control-attribution {
 }
 
 .sheds-today__window.is-best {
-  border-color: rgba(216, 236, 92, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(216, 236, 92, 0.2);
+  border-color: rgba(132, 147, 114, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(132, 147, 114, 0.2);
 }
 
 .sheds-today__window-label {
@@ -2043,7 +2055,7 @@ html.sheds-sheet-open .leaflet-control-attribution {
 }
 
 .sheds-today__signals li[data-kind="fact"] .sheds-today__tag { color: #9fd0ff; border-color: rgba(159, 208, 255, 0.35); }
-.sheds-today__signals li[data-kind="analysis"] .sheds-today__tag { color: var(--sheds-accent); border-color: rgba(216, 236, 92, 0.35); }
+.sheds-today__signals li[data-kind="analysis"] .sheds-today__tag { color: var(--sheds-accent); border-color: rgba(132, 147, 114, 0.35); }
 .sheds-today__signals li[data-kind="pattern"] .sheds-today__tag { color: #c6b4ff; border-color: rgba(198, 180, 255, 0.35); }
 .sheds-today__signals li[data-kind="uncertain"] .sheds-today__tag { color: #f0c090; border-color: rgba(240, 192, 144, 0.35); }
 
@@ -2644,7 +2656,7 @@ html.sheds-sheet-open .leaflet-control-attribution {
     padding-bottom: 0.55rem;
     box-shadow:
       0 18px 48px rgba(0, 0, 0, 0.38),
-      0 0 0 1px rgba(216, 236, 92, 0.12);
+      0 0 0 1px rgba(132, 147, 114, 0.12);
   }
 
   .sheds-suggest:not([data-expanded="true"]) {
@@ -2746,9 +2758,9 @@ html.sheds-sheet-open .leaflet-control-attribution {
 .sheds-fab--primary,
 .sheds-fab[aria-pressed="true"]:not(.sheds-fab--session) {
   background: var(--sheds-accent);
-  color: #0a1410;
+  color: var(--sheds-on-accent, #efe6d4);
   border-color: transparent;
-  box-shadow: 0 12px 32px rgba(180, 210, 60, 0.28);
+  box-shadow: 0 12px 32px rgba(196, 90, 60, 0.28);
 }
 
 .sheds-fab:disabled,
@@ -2784,8 +2796,8 @@ html.sheds-sheet-open .leaflet-control-attribution {
   margin: 0 0 0.35rem;
   padding: 0.55rem 0.7rem;
   border-radius: 10px;
-  background: rgba(216, 236, 92, 0.1);
-  border: 1px solid rgba(216, 236, 92, 0.22);
+  background: rgba(132, 147, 114, 0.1);
+  border: 1px solid rgba(132, 147, 114, 0.22);
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--sheds-text);
@@ -2822,7 +2834,7 @@ html.sheds-sheet-open .leaflet-control-attribution {
 .sheds-map-offline {
   font-weight: 600;
   background: rgba(12, 22, 18, 0.96);
-  border: 1px solid rgba(216, 236, 92, 0.35);
+  border: 1px solid rgba(132, 147, 114, 0.35);
   color: var(--sheds-text);
 }
 
@@ -2879,8 +2891,8 @@ html.sheds-sheet-open .leaflet-control-attribution {
   line-height: 1.35;
 }
 .sheds-map-tip--you {
-  background: #d8ec5c !important;
-  color: #0a1220 !important;
+  background: #c4a574 !important;
+  color: #0c1410 !important;
   border: none !important;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -3084,8 +3096,8 @@ html.sheds-sheet-open .leaflet-control-attribution {
   border: 2px solid rgba(255, 255, 255, 0.85);
 }
 .sheds-marker-legend__swatch--you {
-  background: #c8e86a;
-  box-shadow: 0 0 0 3px rgba(200, 232, 106, 0.25);
+  background: #c4a574;
+  box-shadow: 0 0 0 3px rgba(196, 165, 116, 0.28);
 }
 .sheds-marker-legend__swatch--search {
   background: #5ec8e8;
@@ -3407,13 +3419,13 @@ html.sheds-sheet-open .leaflet-control-attribution {
     border-radius: 14px;
     background: rgba(8, 22, 16, 0.96);
     color: var(--sheds-text);
-    border: 1px solid rgba(230, 240, 200, 0.4);
+    border: 1px solid rgba(239, 230, 212, 0.28);
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
   }
 
   .sheds-map-ctrls .sheds-fab--map.sheds-fab--primary {
-    background: #d8ec5c;
-    color: #0a1410;
+    background: var(--sheds-accent, #c45a3c);
+    color: var(--sheds-on-accent, #efe6d4);
     border-color: transparent;
   }
 

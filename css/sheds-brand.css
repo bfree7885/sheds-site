@@ -1,0 +1,143 @@
+/**
+ * ShedHunting.org brand tokens — approved forest field palette.
+ *
+ * Character: dark forest + warm cream + field olive + terracotta/rust + muted earth.
+ * Not: purple chrome, bright generic green, pure black/white, saturated SaaS.
+ *
+ * Product-scoped. Map/data hues that carry meaning (water, etc.) stay on the map.
+ */
+
+html[data-product="shed-hunting"],
+html[data-product="sheds"],
+.sheds-host,
+.was-shell[data-product="shed-hunting"],
+.sheds-app {
+  /* Core surfaces */
+  --shed-forest-950: #0c1410;
+  --shed-forest-900: #121f18;
+  --shed-forest-850: #16241c;
+  --shed-forest-800: #1a2b21;
+  --shed-forest-700: #22362a;
+
+  /* Type */
+  --shed-cream: #efe6d4;
+  --shed-cream-soft: #e4d8c2;
+  --shed-cream-muted: rgba(239, 230, 212, 0.72);
+
+  /* Field secondary */
+  --shed-olive: #6f7d5f;
+  --shed-olive-bright: #849372;
+  --shed-olive-dim: rgba(111, 125, 95, 0.22);
+
+  /* Accents */
+  --shed-terracotta: #c45a3c;
+  --shed-terracotta-deep: #a84a32;
+  --shed-terracotta-bright: #d46a4a;
+  --shed-tan: #c4a574;
+  --shed-tan-dim: rgba(196, 165, 116, 0.2);
+
+  /* Semantic aliases used across Shed Hunting sheets */
+  --sheds-bg: var(--shed-forest-900);
+  --sheds-bg-deep: var(--shed-forest-950);
+  --sheds-surface: color-mix(in srgb, var(--shed-forest-800) 92%, transparent);
+  --sheds-surface-solid: var(--shed-forest-800);
+  --sheds-elevated: var(--shed-forest-700);
+  --sheds-text: var(--shed-cream);
+  --sheds-ink: var(--shed-cream);
+  --sheds-muted: var(--shed-cream-muted);
+  --sheds-accent: var(--shed-terracotta);
+  --sheds-accent-deep: var(--shed-terracotta-deep);
+  --sheds-accent-bright: var(--shed-terracotta-bright);
+  --sheds-gold: var(--shed-terracotta);
+  --sheds-orange: var(--shed-olive);
+  --sheds-bark: #5a4a38;
+  --sheds-slate: var(--shed-tan);
+  --sheds-border: rgba(239, 230, 212, 0.14);
+  --sheds-border-strong: rgba(196, 165, 116, 0.32);
+  --sheds-danger: #e0a898;
+  --sheds-info: var(--shed-olive-bright);
+  --sheds-on-accent: var(--shed-cream);
+
+  /* Bridge into shared Waypoint/WDS variables when present */
+  --wp-bg: var(--shed-forest-900);
+  --wp-surface: var(--shed-forest-800);
+  --wp-elevated: var(--shed-forest-700);
+  --wp-inset: var(--shed-forest-950);
+  --wp-text: var(--shed-cream);
+  --wp-text-secondary: var(--shed-cream-muted);
+  --wp-accent: var(--shed-terracotta);
+  --wp-accent-dim: rgba(196, 90, 60, 0.18);
+  --wp-accent-bright: var(--shed-terracotta-bright);
+  --wp-warm: var(--shed-olive);
+  --wp-warm-dim: var(--shed-olive-dim);
+  --wp-clay: var(--shed-terracotta-deep);
+  --wp-clay-bright: var(--shed-terracotta);
+  --wp-sage: var(--shed-olive);
+  --wp-sage-deep: #556348;
+  --wp-product-glow: rgba(196, 90, 60, 0.14);
+
+  --wds-bg: var(--wp-bg);
+  --wds-surface: var(--wp-surface);
+  --wds-elevated: var(--wp-elevated);
+  --wds-inset: var(--wp-inset);
+  --wds-text: var(--wp-text);
+  --wds-text-secondary: var(--wp-text-secondary);
+  --wds-accent: var(--wp-accent);
+  --wds-accent-dim: var(--wp-accent-dim);
+  --wds-warm: var(--wp-warm);
+  --wds-moss: var(--wp-sage-deep);
+  --wds-border: var(--sheds-border);
+  --wds-border-subtle: rgba(239, 230, 212, 0.1);
+  --wds-topbar-bg: color-mix(in srgb, var(--shed-forest-900) 94%, transparent);
+  --wds-product-glow: var(--wp-product-glow);
+  --wds-on-accent: var(--sheds-on-accent);
+}
+
+/* —— Brand mark (antler) —— */
+/* Option K portrait shed (viewBox 360×460). Primary header target ~33px tall (32–36px). */
+.sheds-brand-mark {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: calc(33px * 360 / 460); /* ~25.8px — preserve aspect */
+  height: 33px;
+  color: var(--shed-cream);
+  line-height: 0;
+}
+
+.sheds-brand-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sheds-host-brand {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sheds-host-brand__text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* Map HUD: show full K silhouette (no circular crop that clipped the shed). */
+.sheds-hud-brand__mark {
+  width: calc(32px * 360 / 460);
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--shed-cream);
+  display: inline-grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.sheds-hud-brand__mark .sheds-brand-mark {
+  width: calc(32px * 360 / 460);
+  height: 32px;
+}

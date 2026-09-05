@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+  <g fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Left: heavier lower beam, shorter G2 -->
+    <path d="M25.5 52 C23.2 43.5 17.5 37 13 28.5 C10.8 23.5 10.5 17.5 13.5 13.5"/>
+    <path d="M17 33 C13.2 30.5 10.2 25.5 9.2 20"/>
+    <path d="M20.5 28.5 C17 26.2 15.2 21.5 16 16.5"/>
+    <path d="M23.5 39 C20.5 37.5 18 34 17 30.5"/>
+    <path d="M22 24 C20.2 22.2 19.2 19.5 19.5 17"/>
+    <!-- Right: longer main beam, strong G3, muted brow -->
+    <path d="M38.5 52 C41.2 42.5 47.5 35.5 51.5 26 C53.5 21 53.8 15.5 50.5 11.5"/>
+    <path d="M46.5 31.5 C50.5 28 54 22.5 54.5 16.5"/>
+    <path d="M43 27 C46.8 23.5 49.5 18 48.5 12.5"/>
+    <path d="M40.5 38 C43.8 36 46.5 32 47.5 28"/>
+  </g>
+</svg>

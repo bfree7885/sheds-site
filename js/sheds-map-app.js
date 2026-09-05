@@ -1032,7 +1032,7 @@
       ? LOCATION_KIND.USER_APPROXIMATE
       : LOCATION_KIND.USER_GPS;
     var fill = approximate ? "#8ec0ff" : "#f5f8f4";
-    var stroke = approximate ? "#8ec0ff" : "#d8ec5c";
+    var stroke = approximate ? "#8ec0ff" : "#c4a574";
     var tip = approximate
       ? "YOU · approximate (±" + Math.round(accuracyM) + " m) — not a search target"
       : "YOU — your location (not a search target)";
@@ -5215,7 +5215,7 @@
         radius: 5,
         className: "sheds-measure-vertex",
         color: "#0a1410",
-        fillColor: "#d8ec5c",
+        fillColor: "#c4a574",
         fillOpacity: 1,
         weight: 2
       }).addTo(measureLayer);
@@ -5225,7 +5225,7 @@
         pts.map(function (p) {
           return [p.lat, p.lng];
         }),
-        { color: "#d8ec5c", weight: 3, opacity: 0.9, dashArray: "6 6" }
+        { color: "#c4a574", weight: 3, opacity: 0.9, dashArray: "6 6" }
       ).addTo(measureLayer);
     }
     updateMeasureHud();

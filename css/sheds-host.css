@@ -1,15 +1,15 @@
 /**
  * Shed Hunting dedicated-host chrome (Phase 2 template).
  * Focused product shell — not a copy of Waypoint Studio navigation.
- * Tokens fall back so this sheet does not require the full wds.css bundle.
+ * Forest field brand tokens come from sheds-brand.css.
  */
 
 .sheds-host {
   min-height: 100vh;
   margin: 0;
   overflow-x: clip;
-  background: var(--wp-bg, var(--wds-bg, #181513));
-  color: var(--wds-text, #f0e1c3);
+  background: var(--sheds-bg, var(--wp-bg, #121f18));
+  color: var(--sheds-text, var(--wds-text, #efe6d4));
   font-family: "Source Sans 3", system-ui, sans-serif;
 }
 
@@ -19,8 +19,8 @@
   top: 0;
   z-index: 400;
   padding: 0.75rem 1rem;
-  background: #1f1a26;
-  color: #e4eaf4;
+  background: var(--sheds-elevated, #22362a);
+  color: var(--sheds-text, #efe6d4);
   text-decoration: none;
   border-radius: 10px;
 }
@@ -37,27 +37,35 @@
   justify-content: space-between;
   gap: 0.75rem 1.25rem;
   padding: 0.85rem 1.15rem;
-  border-bottom: 1px solid rgba(191, 169, 140, 0.14);
-  background: color-mix(in srgb, var(--wp-bg, #181513) 94%, transparent);
+  border-bottom: 1px solid var(--sheds-border, rgba(239, 230, 212, 0.14));
+  background: color-mix(in srgb, var(--sheds-bg, #121f18) 94%, transparent);
 }
 
 .sheds-host-brand {
   display: inline-flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
   text-decoration: none;
   color: inherit;
+}
+
+.sheds-host-brand__text {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 .sheds-host-brand__name {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.2rem;
   letter-spacing: -0.02em;
+  color: var(--sheds-text, #efe6d4);
 }
 
 .sheds-host-brand__powered {
   font-size: 0.75rem;
-  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 62%, transparent);
+  color: color-mix(in srgb, var(--sheds-text, #efe6d4) 62%, transparent);
 }
 
 .sheds-host-nav {
@@ -68,7 +76,7 @@
 }
 
 .sheds-host-nav a {
-  color: var(--wp-clay-bright, #c47a72);
+  color: var(--sheds-accent, #c45a3c);
   text-decoration: none;
 }
 
@@ -91,8 +99,8 @@
   min-height: 44px;
   padding: 0.55rem 1.1rem;
   border-radius: 999px;
-  background: var(--wp-clay, #a85d52);
-  color: #fff8f0;
+  background: var(--sheds-accent-deep, #a84a32);
+  color: var(--sheds-on-accent, #efe6d4);
   text-decoration: none;
   font-weight: 600;
 }
@@ -110,8 +118,8 @@ button.sheds-host-btn {
 
 .sheds-host-btn--ghost {
   background: transparent;
-  border: 1px solid rgba(191, 169, 140, 0.35);
-  color: var(--wds-text, #f0e1c3);
+  border: 1px solid var(--sheds-border-strong, rgba(196, 165, 116, 0.32));
+  color: var(--sheds-text, #efe6d4);
 }
 
 .xp-stage__cta {
@@ -123,19 +131,19 @@ button.sheds-host-btn {
 
 .xp-stage__cta-note {
   font-size: 0.88rem;
-  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 62%, transparent);
+  color: color-mix(in srgb, var(--sheds-text, #efe6d4) 62%, transparent);
 }
 
 .sheds-host-foot {
   margin-top: 2.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid rgba(191, 169, 140, 0.14);
+  border-top: 1px solid var(--sheds-border, rgba(239, 230, 212, 0.14));
   font-size: 0.88rem;
-  color: color-mix(in srgb, var(--wds-text, #f0e1c3) 70%, transparent);
+  color: color-mix(in srgb, var(--sheds-text, #efe6d4) 70%, transparent);
 }
 
 .sheds-host-foot a {
-  color: var(--wp-clay-bright, #c47a72);
+  color: var(--sheds-accent, #c45a3c);
 }
 
 @media (max-width: 40rem) {
@@ -166,7 +174,7 @@ button.sheds-host-btn {
     z-index: 3;
     margin-top: 0.45rem;
     padding: 0.55rem 0 0.45rem;
-    background: color-mix(in srgb, var(--wp-bg, #181513) 94%, #181513);
+    background: color-mix(in srgb, var(--sheds-bg, #121f18) 94%, #121f18);
   }
 }
 

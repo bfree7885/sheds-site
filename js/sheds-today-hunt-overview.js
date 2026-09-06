@@ -52,8 +52,8 @@
   function openMapHref() {
     var host = document.documentElement.getAttribute("data-shed-host") === "1";
     var path = (global.location && global.location.pathname) || "";
-    if (host && !/\/host(\/|$)/.test(path)) return "map/";
-    return "../map/";
+    var base = host && !/\/host(\/|$)/.test(path) ? "map/" : "../map/";
+    return base + "?today=1";
   }
 
   function render(hunt) {

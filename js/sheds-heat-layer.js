@@ -48,7 +48,7 @@
       return "rgba(75, 145, 70, " + ((0.16 + (p - 0.72) * 0.38) * aMul) + ")";
     },
 
-    /** Discrete Phase 2 habitat bands — not rainbow heat, not finer than ~30 m honesty. */
+    /** Discrete Phase 2 habitat / V1.3 / V2.0 interest bands — not rainbow heat. */
     _colorForBand: function (band, alphaBoost) {
       var aMul = alphaBoost != null ? alphaBoost : 1;
       if (band === "stronger") return "rgba(72, 140, 78, " + 0.34 * aMul + ")";
@@ -57,6 +57,10 @@
       if (band === "higher") return "rgba(52, 118, 74, " + 0.30 * aMul + ")";
       if (band === "moderate") return "rgba(186, 148, 58, " + 0.18 * aMul + ")";
       if (band === "lower") return "rgba(92, 98, 90, " + 0.10 * aMul + ")";
+      // V2.0 Phase 1 — relative search interest today (reuse forest wash tokens)
+      if (band === "stronger_interest") return "rgba(72, 140, 78, " + 0.34 * aMul + ")";
+      if (band === "moderate_interest") return "rgba(168, 148, 72, " + 0.26 * aMul + ")";
+      if (band === "lower_interest") return "rgba(78, 110, 118, " + 0.16 * aMul + ")";
       return null;
     },
 
@@ -68,6 +72,11 @@
     _isSearchMode: function () {
       var grid = this._grid;
       return !!(grid && grid.renderMode === "search-priority");
+    },
+
+    _isInterestMode: function () {
+      var grid = this._grid;
+      return !!(grid && grid.renderMode === "search-interest-today");
     },
 
     _cellAt: function (row, col) {
@@ -110,9 +119,10 @@
       var limited = grid.coverage && grid.coverage.level === "limited";
       var gis = this._isGisMode();
       var search = this._isSearchMode();
+      var interest = this._isInterestMode();
       var i;
 
-      if (search) {
+      if (search || interest) {
         for (i = 0; i < grid.cells.length; i++) {
           var sc = grid.cells[i];
           if (!sc || sc.outsideArea || !sc.band) continue;
@@ -123,7 +133,7 @@
           if (sx > 256 || sy > 256 || sx + cellW < 0 || sy + cellH < 0) continue;
           ctx.fillStyle = sfill;
           ctx.fillRect(sx, sy, Math.ceil(cellW) + 1, Math.ceil(cellH) + 1);
-          if (sc.band === "higher") {
+          if (sc.band === "higher" || sc.band === "stronger_interest") {
             ctx.strokeStyle = "rgba(255,255,255,0.10)";
             ctx.strokeRect(sx + 0.5, sy + 0.5, Math.max(1, cellW - 1), Math.max(1, cellH - 1));
           }

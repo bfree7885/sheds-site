@@ -290,6 +290,7 @@
           result: scored,
           priority: scored && scored.score != null ? scored.score : 0,
           band: scored && scored.band ? scored.band.id : "unavailable",
+          slopeDeg: sample && sample.slopeDeg != null ? sample.slopeDeg : null,
           habitatEmpty: !scored || !!scored.unavailable || outside
         });
       }

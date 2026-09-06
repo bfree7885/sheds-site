@@ -338,8 +338,8 @@
         </div>
       </div>
 
-      <!-- Landscape band legend — compact/collapsible on mobile -->
-      <div class="sheds-legend-float" id="heat-legend" hidden aria-label="Landscape guidance legend" data-expanded="false">
+      <!-- Landscape / search-interest legend — compact/collapsible on mobile -->
+      <div class="sheds-legend-float" id="heat-legend" hidden aria-label="Search interest legend" data-expanded="false">
         <button type="button" class="sheds-legend-float__toggle" id="btn-heat-legend-toggle" aria-expanded="false" aria-controls="heat-legend-body">
           <span class="sheds-legend-float__mode" id="heat-legend-mode">Landscape · MODEL</span>
           <span class="sheds-legend-float__chev" aria-hidden="true"></span>
@@ -351,6 +351,16 @@
           <span class="sheds-legend-float__status" id="heat-legend-status">Mapped landscape structure — not find %</span>
         </div>
       </div>
+
+      <!-- Why these bands today — compact explanation tied to active Search Area -->
+      <details class="sheds-why-bands" id="why-bands-today" data-state="no-area">
+        <summary class="sheds-why-bands__summary">Why these bands today</summary>
+        <div class="sheds-why-bands__body" id="why-bands-today-body">
+          <p class="sheds-why-bands__status" id="why-bands-today-status">Create or select a Search Area to see today’s relative search interest.</p>
+          <ul class="sheds-why-bands__list" id="why-bands-today-list"></ul>
+          <p class="sheds-why-bands__note">Relative search interest inside this Search Area — not a find probability.</p>
+        </div>
+      </details>
 
       <!-- Primary trip briefing — WHEN / WHERE / LANDSCAPE / TODAY / OBS / NEXT -->
       <aside class="sheds-sheet-field sheds-suggest sheds-story" id="plan-card" aria-live="polite" data-expanded="false" data-has-plan="false" data-todays-search="true">
@@ -1144,6 +1154,8 @@
   <script src="../js/sheds-map-field-tools.js"></script>
   <script src="../js/sheds-inspect-intel.js"></script>
   <script src="../js/sheds-search-priority.js"></script>
+  <script src="../js/sheds-search-priority-today.js"></script>
+  <script src="../js/sheds-search-priority-today-map.js"></script>
   <script src="../js/sheds-scout-spot-store.js"></script>
   <script src="../js/sheds-hunt-plan-store.js"></script>
   <script src="../js/sheds-hunt-session-store.js"></script>

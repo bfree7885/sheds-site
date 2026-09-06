@@ -772,6 +772,7 @@
               priorityLabel: ev.priority,
               status: "ready",
               slopeDeg: ev.raw.slopeDeg,
+              aspectCardinal: ev.feature && ev.feature.aspectCardinal,
               featureKind: ev.feature && ev.feature.kind,
               outsideArea: false
             };

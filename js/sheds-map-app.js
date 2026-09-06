@@ -39,6 +39,8 @@
   var FieldTools = window.WaypointShedsFieldTools;
   var InspectIntel = window.WaypointShedsInspectIntel;
   var SearchPriority = window.WaypointShedsSearchPriority;
+  var SearchPriorityToday = window.WaypointShedsSearchPriorityToday;
+  var SearchPriorityTodayMap = window.WaypointShedsSearchPriorityTodayMap;
 
   var NEUTRAL = { lat: 44.5, lng: -92.5, zoom: 6 }; // Midwest overview — not “you”
   var GRID_ROWS = 18;
@@ -377,13 +379,40 @@
       syncGuidanceModeLabel();
       modeEl.textContent = state.heatMode === "observed"
         ? "My observations"
-        : (state.lastGrid && state.lastGrid.unavailable
-          ? "Landscape unavailable"
-          : (state.lastGrid && state.lastGrid.habitatEmpty
-            ? "No landscape guidance yet"
-            : (state.lastGrid && state.lastGrid.renderMode === "gis-bands"
-              ? "Landscape · MODEL"
-              : "Landscape guidance")));
+        : (state.lastGrid && state.lastGrid.renderMode === "search-interest-today"
+          ? "Search interest today"
+          : (state.lastGrid && state.lastGrid.unavailable
+            ? "Landscape unavailable"
+            : (state.lastGrid && state.lastGrid.habitatEmpty
+              ? "No landscape guidance yet"
+              : (state.lastGrid && state.lastGrid.renderMode === "gis-bands"
+                ? "Landscape · MODEL"
+                : "Landscape guidance"))));
+    }
+    var low = legend.querySelector(".sheds-swatch--low");
+    var mid = legend.querySelector(".sheds-swatch--mid");
+    var high = legend.querySelector(".sheds-swatch--high");
+    function setSwatchLabel(swatchEl, text) {
+      if (!swatchEl || !swatchEl.parentNode) return;
+      var node = swatchEl.parentNode;
+      // Replace trailing text node after swatch
+      var parts = [];
+      var i;
+      for (i = 0; i < node.childNodes.length; i++) {
+        if (node.childNodes[i] === swatchEl) continue;
+        if (node.childNodes[i].nodeType === 3) parts.push(node.childNodes[i]);
+      }
+      for (i = 0; i < parts.length; i++) node.removeChild(parts[i]);
+      node.appendChild(document.createTextNode(" " + text));
+    }
+    if (state.lastGrid && state.lastGrid.renderMode === "search-interest-today") {
+      setSwatchLabel(low, "Lower");
+      setSwatchLabel(mid, "Moderate");
+      setSwatchLabel(high, "Stronger");
+    } else {
+      setSwatchLabel(low, "Limited");
+      setSwatchLabel(mid, "Some");
+      setSwatchLabel(high, "Stronger");
     }
     var status = $("heat-legend-status");
     if (status) {
@@ -393,6 +422,10 @@
         status.textContent = n
           ? (n + " private note" + (n === 1 ? "" : "s") + " in filter")
           : "Empty — log observations to build this view";
+      } else if (state.lastGrid && state.lastGrid.renderMode === "search-interest-today") {
+        status.textContent = state.lastGrid.unavailable
+          ? "Search-interest guidance is limited here"
+          : "Stronger / moderate / lower search interest — not find %";
       } else if (state.lastGrid && state.lastGrid.renderMode === "gis-bands") {
         status.textContent = state.lastGrid.unavailable
           ? ((Ux && Ux.EMPTY.NO_GIS) || "Landscape guidance isn’t available for this area yet.")
@@ -697,6 +730,7 @@
     state.activeSearchAreaName = null;
     drawSearchOnMap();
     syncSearchPrompt();
+    renderWhyBandsToday(null, { insufficient: true });
     scheduleRecompute(80);
   }
 
@@ -3475,6 +3509,91 @@
     }
   }
 
+
+  function searchAreaBoundsLiteral() {
+    if (!state.searchLocation) return null;
+    var r = searchRadiusM();
+    var lat = state.searchLocation.lat;
+    var lng = state.searchLocation.lng;
+    var latM = 111320;
+    var lonM = 111320 * Math.cos((lat * Math.PI) / 180);
+    return {
+      north: lat + r / latM,
+      south: lat - r / latM,
+      west: lng - r / lonM,
+      east: lng + r / lonM
+    };
+  }
+
+  function renderWhyBandsToday(summary, meta) {
+    meta = meta || {};
+    var root = document.getElementById("why-bands-today");
+    if (!root) return;
+    var body = document.getElementById("why-bands-today-body");
+    var status = document.getElementById("why-bands-today-status");
+    var list = document.getElementById("why-bands-today-list");
+    if (!state.searchLocation) {
+      root.hidden = false;
+      if (status) status.textContent = "Create or select a Search Area to see today's relative search interest.";
+      if (list) list.innerHTML = "";
+      root.setAttribute("data-state", "no-area");
+      return;
+    }
+    root.hidden = false;
+    var bullets = (summary && summary.bullets) || [];
+    if (!bullets.length) {
+      bullets = ["Today's conditions did not materially change the base spatial priority."];
+    }
+    if (status) {
+      if (meta.insufficient) status.textContent = "Guidance is limited here because some terrain or condition inputs are unavailable.";
+      else if (summary && summary.appliedModifiers && summary.appliedModifiers.length) {
+        status.textContent = "Condition-aware relative search interest inside this Search Area.";
+      } else {
+        status.textContent = "Base spatial priority with today's conditions.";
+      }
+    }
+    if (list) {
+      list.innerHTML = bullets.map(function (b) {
+        return "<li>" + String(b).replace(/</g, "&lt;") + "</li>";
+      }).join("");
+    }
+    root.setAttribute("data-state", meta.insufficient ? "limited" : "ready");
+  }
+
+  function applySearchInterestToday(spatialGrid, done) {
+    done = typeof done === "function" ? done : function () {};
+    if (!SearchPriorityTodayMap || !SearchPriorityToday) {
+      done(null);
+      return;
+    }
+    if (!state.searchLocation) {
+      renderWhyBandsToday(null, { insufficient: true });
+      done(null);
+      return;
+    }
+    var huntCtx = SearchPriority && SearchPriority.todayContextFromHunt
+      ? SearchPriority.todayContextFromHunt(state.lastHunt)
+      : { available: false };
+    var terrainGrid = null;
+    if (
+      state.lastSearchAreasGrid &&
+      state.lastSearchAreasGrid.status === "ready" &&
+      state.lastSearchAreasGrid.cells &&
+      state.lastSearchAreasGrid.cells.length
+    ) {
+      terrainGrid = state.lastSearchAreasGrid;
+    }
+    var out = SearchPriorityTodayMap.buildInterestGrid({
+      searchLocation: state.searchLocation,
+      spatialGrid: spatialGrid,
+      terrainGrid: terrainGrid,
+      huntContext: huntCtx
+    });
+    state.lastInterestSummary = out.summary || null;
+    renderWhyBandsToday(out.summary, { insufficient: !out.ok });
+    done(out);
+  }
+
   function applyGridToUi(grid, meta) {
     meta = meta || {};
     state.lastGrid = grid;
@@ -3604,6 +3723,7 @@
         };
         syncHeatLegend();
         syncSearchPrompt();
+        renderWhyBandsToday(null, { insufficient: true });
         wxPromise.then(function (w) {
           if (gen !== state.recomputeGen) return;
           if (w) state.weather = w;
@@ -3632,14 +3752,24 @@
         state.heatPhase = "refine";
         state.lastPerf.gisMs = ((typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now()) - tGis;
         state.lastPerf.refineMs = state.lastPerf.gisMs;
-        applyGridToUi(grid, {
-          label: grid.unavailable
-            ? "Habitat data unavailable for this area"
-            : "Habitat structure (SEARCH AREA · ~30 m)",
-          elevNote: grid.unavailable
-            ? "No GIS pack covers this SEARCH LOCATION — no decorative fallback."
-            : ("Pack " + (grid.packId || "?") + " · radius ~" + grid.radiusM + " m · " +
-              (grid.guidanceMode === "combined" ? "COMBINED guidance" : "MODEL only") + " · not find %")
+        applySearchInterestToday(grid, function (interest) {
+          if (gen !== state.recomputeGen) return;
+          if (interest && interest.ok && interest.grid) {
+            applyGridToUi(interest.grid, {
+              label: "Search interest today",
+              elevNote: interest.note || "Relative search interest — not find probability."
+            });
+            return;
+          }
+          // Honest empty wash when interest cannot be evaluated — do not keep a decorative habitat wash.
+          var empty = (interest && interest.grid) || (SearchPriorityTodayMap && SearchPriorityTodayMap.emptyInterestGrid
+            ? SearchPriorityTodayMap.emptyInterestGrid((interest && interest.note) || "Search-interest guidance unavailable here.")
+            : grid);
+          applyGridToUi(empty, {
+            label: "Search interest limited",
+            elevNote: (interest && interest.note) ||
+              "Not enough terrain, habitat, or condition evidence for a search-interest wash."
+          });
         });
         wxPromise.then(function (w) {
           if (gen !== state.recomputeGen) return;
@@ -6544,6 +6674,22 @@
     closeSheet(els.sheetEthics);
   }
 
+
+  function consumeTodayHuntMapHandoff() {
+    try {
+      var params = new URLSearchParams(location.search || "");
+      if (params.get("today") !== "1") return;
+      // Drop the query so refresh/share stays clean.
+      if (history && history.replaceState) {
+        history.replaceState(null, "", location.pathname + (location.hash || ""));
+      }
+      if (state.searchLocation) return;
+      var loc = locationForHunt();
+      if (!loc || !isFinite(loc.lat) || !isFinite(loc.lng)) return;
+      setSearchLocation({ lat: loc.lat, lng: loc.lng, source: loc.source || "today_hunt" });
+    } catch (e) { /* ignore */ }
+  }
+
   function boot() {
     if (!window.L || !Store || !Model || !Heat || !Sessions || !Planner || !Bio || !Presets || !Validation || !Patterns || !TodaysSearch) {
       requestAnimationFrame(boot);
@@ -6630,6 +6776,7 @@
     // against live Permissions API inside locateUser. Center on initial GPS even
     // when a prior session saved a map view (saved view remains fallback if GPS fails).
     locateUser({ center: true });
+    consumeTodayHuntMapHandoff();
     setPlanExpanded(false);
     syncHeatLegend();
     syncSearchAreasLegend();

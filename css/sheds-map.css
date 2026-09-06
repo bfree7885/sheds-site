@@ -3707,3 +3707,56 @@ html.sheds-sheet-open .leaflet-control-attribution {
     min-height: 2.25rem;
   }
 }
+
+
+/* V2.0 Phase 1 — Why these bands today */
+.sheds-why-bands {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(var(--sheds-safe-bottom, 12px) + 72px);
+  z-index: 620;
+  max-width: 360px;
+  margin: 0 auto;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sheds-forest-ink, #1a241c) 88%, transparent);
+  color: var(--sheds-forest-cream, #f3efe4);
+  border: 1px solid color-mix(in srgb, var(--sheds-forest-olive, #6d7a52) 55%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+}
+.sheds-why-bands__summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.sheds-why-bands__summary::-webkit-details-marker { display: none; }
+.sheds-why-bands__body {
+  padding: 0 14px 12px;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+.sheds-why-bands__status { margin: 0 0 8px; opacity: 0.95; }
+.sheds-why-bands__list {
+  margin: 0 0 8px;
+  padding-left: 1.1rem;
+}
+.sheds-why-bands__list li { margin: 0 0 4px; }
+.sheds-why-bands__note {
+  margin: 0;
+  opacity: 0.72;
+  font-size: 0.78rem;
+}
+@media (max-width: 390px) {
+  .sheds-why-bands {
+    bottom: calc(var(--sheds-safe-bottom, 10px) + 64px);
+    max-width: none;
+  }
+}
+@media (max-width: 320px) {
+  .sheds-why-bands__summary { font-size: 0.86rem; padding: 8px 10px; }
+  .sheds-why-bands__body { font-size: 0.8rem; padding: 0 10px 10px; }
+}

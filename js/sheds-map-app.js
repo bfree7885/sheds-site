@@ -136,6 +136,10 @@
     searchAreasTimer: null,
     searchAreasStatus: "idle",
     lastSearchAreasGrid: null,
+    /** Viewport terrain-enrichment cache key (bounds+grid+zoom). Memory only. */
+    terrainEnrichKey: "",
+    /** Enrichment key already applied to Search Priority Today (loop guard). */
+    interestEnrichAppliedKey: "",
     scoutSpotId: null,
     huntPlanId: null,
     huntSelecting: false,
@@ -721,6 +725,8 @@
     drawSearchOnMap();
     syncSearchPrompt();
     scheduleRecompute(80);
+    // Terrain/aspect enrichment is independent of Search Areas overlay visibility.
+    scheduleSearchAreas(120);
     return loc;
   }
 
@@ -728,10 +734,12 @@
     state.searchLocation = null;
     state.activeSearchAreaId = null;
     state.activeSearchAreaName = null;
+    state.interestEnrichAppliedKey = "";
     drawSearchOnMap();
     syncSearchPrompt();
     renderWhyBandsToday(null, { insufficient: true });
     scheduleRecompute(80);
+    scheduleSearchAreas(120);
   }
 
   function openSavedSearchArea(id) {
@@ -2845,9 +2853,35 @@
     state.recomputeTimer = setTimeout(recomputeHeat, ms || 300);
   }
 
+  /**
+   * Phase 1.x — terrain/aspect enrichment runs when Search Areas overlay is on
+   * OR a Search Location is active. Overlay visibility is presentation-only.
+   */
+  function terrainEnrichmentNeeded() {
+    return !!state.searchAreasVisible || !!(
+      state.searchLocation &&
+      isFinite(state.searchLocation.lat) &&
+      isFinite(state.searchLocation.lng)
+    );
+  }
+
+  function terrainEnrichCacheKey(bounds, rows, cols, zoom) {
+    if (!bounds) return "";
+    var z = zoom != null ? Math.floor(zoom) : 0;
+    return [
+      Number(bounds.west).toFixed(3),
+      Number(bounds.south).toFixed(3),
+      Number(bounds.east).toFixed(3),
+      Number(bounds.north).toFixed(3),
+      rows || 0,
+      cols || 0,
+      z
+    ].join("|");
+  }
+
   function scheduleSearchAreas(ms) {
     clearTimeout(state.searchAreasTimer);
-    if (!state.searchAreasVisible) {
+    if (!terrainEnrichmentNeeded()) {
       if (searchAreasLayer) searchAreasLayer.setHeatVisible(false);
       syncSearchAreasLegend();
       return;
@@ -3020,20 +3054,30 @@
     var legend = $("search-areas-legend");
     if (legend) legend.setAttribute("data-on", state.searchAreasVisible ? "true" : "false");
     if (!state.searchAreasVisible) {
-      if (state.searchAreasAbort) {
-        try { state.searchAreasAbort.abort(); } catch (e2) { /* */ }
-        state.searchAreasAbort = null;
+      // Presentation only — keep lastSearchAreasGrid for Search Priority Today enrichment.
+      if (searchAreasLayer) searchAreasLayer.setHeatVisible(false);
+      if (!terrainEnrichmentNeeded()) {
+        if (state.searchAreasAbort) {
+          try { state.searchAreasAbort.abort(); } catch (e2) { /* */ }
+          state.searchAreasAbort = null;
+        }
+        state.searchAreasFetchGen += 1;
+        state.searchAreasStatus = "idle";
       }
-      state.searchAreasFetchGen += 1;
-      if (searchAreasLayer) {
-        searchAreasLayer.setHeatVisible(false);
-        searchAreasLayer.setGrid({ cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
-      }
-      state.searchAreasStatus = "idle";
       syncSearchAreasLegend();
       return;
     }
     ensureSearchAreasLayer();
+    if (
+      state.lastSearchAreasGrid &&
+      state.lastSearchAreasGrid.status === "ready" &&
+      state.lastSearchAreasGrid.cells &&
+      state.lastSearchAreasGrid.cells.length &&
+      searchAreasLayer
+    ) {
+      searchAreasLayer.setGrid(state.lastSearchAreasGrid);
+      searchAreasLayer.setHeatVisible(true);
+    }
     scheduleSearchAreas(80);
   }
 
@@ -3058,20 +3102,60 @@
     else status.textContent = "Higher / Moderate / Lower — not a find chance";
   }
 
-  function applySearchAreasGrid(grid) {
+  function paintSearchAreasLayer(grid) {
+    if (!state.searchAreasVisible) {
+      if (searchAreasLayer) searchAreasLayer.setHeatVisible(false);
+      return;
+    }
     ensureSearchAreasLayer();
-    state.lastSearchAreasGrid = grid;
     if (searchAreasLayer) {
       searchAreasLayer.setGrid(grid || { cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
-      searchAreasLayer.setHeatVisible(!!state.searchAreasVisible);
+      searchAreasLayer.setHeatVisible(true);
     }
+  }
+
+  /**
+   * Store terrain enrichment (and optionally paint Search Areas overlay).
+   * When a new ready enrichment key arrives with an active Search Location,
+   * schedule one Search Priority Today refresh — never loops on the same key.
+   */
+  function applySearchAreasGrid(grid, opts) {
+    opts = opts || {};
+    state.lastSearchAreasGrid = grid;
+    var bounds = grid && grid.bounds ? grid.bounds : null;
+    var key = terrainEnrichCacheKey(
+      bounds,
+      grid && grid.rows,
+      grid && grid.cols,
+      map ? map.getZoom() : 0
+    );
+    if (grid && grid.status === "ready" && grid.cells && grid.cells.length) {
+      state.terrainEnrichKey = key;
+    } else if (opts.clearKey) {
+      state.terrainEnrichKey = "";
+    }
+    paintSearchAreasLayer(grid);
     syncSearchAreasLegend();
+    if (
+      !opts.skipInterestRefresh &&
+      grid &&
+      grid.status === "ready" &&
+      grid.cells &&
+      grid.cells.length &&
+      state.searchLocation &&
+      key &&
+      key !== state.interestEnrichAppliedKey
+    ) {
+      state.interestEnrichAppliedKey = key;
+      scheduleRecompute(120);
+    }
   }
 
   function recomputeSearchAreas() {
     if (!map || !SearchPriority) return;
-    if (!state.searchAreasVisible) {
-      applySearchAreasGrid({ cells: [], bounds: { west: 0, east: 0, south: 0, north: 0 }, rows: 0, cols: 0 });
+    if (!terrainEnrichmentNeeded()) {
+      paintSearchAreasLayer(null);
+      syncSearchAreasLegend();
       return;
     }
     var zoom = map.getZoom();
@@ -3087,6 +3171,20 @@
       : rawBounds;
     var rows = SearchPriority.GRID_ROWS || 12;
     var cols = SearchPriority.GRID_COLS || 12;
+    var cacheKey = terrainEnrichCacheKey(searchBounds, rows, cols, zoom);
+    if (
+      cacheKey &&
+      cacheKey === state.terrainEnrichKey &&
+      state.lastSearchAreasGrid &&
+      state.lastSearchAreasGrid.status === "ready" &&
+      state.lastSearchAreasGrid.cells &&
+      state.lastSearchAreasGrid.cells.length
+    ) {
+      state.searchAreasStatus = "ready";
+      paintSearchAreasLayer(state.lastSearchAreasGrid);
+      syncSearchAreasLegend();
+      return;
+    }
     if (zoom < (SearchPriority.MIN_ZOOM || 12)) {
       state.searchAreasStatus = "insufficient_zoom";
       applySearchAreasGrid(SearchPriority.evaluateGrid({
@@ -3095,7 +3193,7 @@
         rows: rows,
         cols: cols,
         elevations: []
-      }));
+      }), { clearKey: true, skipInterestRefresh: true });
       return;
     }
     if (state.offlineForced || (typeof navigator !== "undefined" && navigator.onLine === false)) {
@@ -3108,13 +3206,13 @@
         cells: [],
         bounds: searchBounds,
         message: SearchPriority.COPY.UNAVAILABLE
-      });
+      }, { clearKey: true, skipInterestRefresh: true });
       return;
     }
     state.searchAreasStatus = "loading";
     syncSearchAreasLegend();
     fetchSearchAreaElevations(mapBounds, rows, cols).then(function (elev) {
-      if (!state.searchAreasVisible) return;
+      if (!terrainEnrichmentNeeded()) return;
       if (elev && elev.failed) {
         state.searchAreasStatus = "failed";
         applySearchAreasGrid({
@@ -3125,7 +3223,7 @@
           cells: [],
           bounds: searchBounds,
           message: SearchPriority.COPY.FAILED
-        });
+        }, { clearKey: true, skipInterestRefresh: true });
         return;
       }
       if (!elev) return;
@@ -6785,6 +6883,8 @@
     initFirstRunCoach();
     ensureGisPacks().then(function () {
       scheduleRecompute(200);
+      // Phase 1.x: terrain/aspect enrichment for Search Priority Today (overlay-independent).
+      scheduleSearchAreas(240);
     });
     $("ethics-ack").addEventListener("click", onEthicsAck);
     maybeEthics();
